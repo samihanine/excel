@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const excelContractSchema = z.object({
+export const excelSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string(),
@@ -12,3 +12,5 @@ export const excelContractSchema = z.object({
     }),
   ),
 });
+
+export type Excel = z.infer<typeof excelSchema>;

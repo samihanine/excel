@@ -1,4 +1,9 @@
 export const LOCAL_STORAGE_EVENT = "local-storage-change";
+export const SEMANTIC_MODELS_STORAGE_KEY = "semantic-models";
+export const CURRENT_SEMANTIC_MODEL_STORAGE_KEY = "current-semantic-model";
+export const CONVERSATIONS_STORAGE_KEY = "conversations";
+export const CURRENT_CONVERSATION_STORAGE_KEY = "current-conversation";
+export const PBIX_ACCESS_TOKEN_STORAGE_KEY = "pbix-access-token";
 
 export function readJson<T>(storageKey: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;

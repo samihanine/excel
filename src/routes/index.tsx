@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { ChartRow } from "@/components/chart";
 import { Chart } from "@/components/chart";
-import type { ChartSpec } from "@/contracts/dashboard-contract";
-import { chartSpecSchema } from "@/contracts/dashboard-contract";
+import type { ChartSpec } from "@/schemas/dashboard-schema";
+import { chartSpecSchema } from "@/schemas/dashboard-schema";
 
 export const Route = createFileRoute("/")({
   component: Page,

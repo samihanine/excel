@@ -22,8 +22,10 @@ type Message = {
   createdAt: string;
 };
 
+type MessageRole = "system" | "user" | "assistant";
+
 type StoredMessage = Message & {
-  role: "user" | "assistant";
+  role: MessageRole;
 };
 
 const conversations = new Map<string, Conversation>();
@@ -52,6 +54,44 @@ function requireConversationMessages(conversationId: string) {
 
   return messages;
 }
+
+function appendMessage({
+  conversationId,
+  textContent,
+  role,
+}: {
+  conversationId: string;
+  textContent: string;
+  role: MessageRole;
+}): StoredMessage {
+  const conversationMessages = requireConversationMessages(conversationId);
+
+  const message: StoredMessage = {
+    id: crypto.randomUUID(),
+    conversationId,
+    textContent,
+    createdAt: new Date().toISOString(),
+    role,
+  };
+
+  conversationMessages.push(message);
+
+  return message;
+}
+
+export const addMessage = async ({
+  conversationId,
+  textContent,
+  role,
+}: {
+  conversationId: string;
+  textContent: string;
+  role: MessageRole;
+}): Promise<Message> => {
+  return toPublicMessage(
+    appendMessage({ conversationId, textContent, role }),
+  );
+};
 
 export const getConversations = async (): Promise<Conversation[]> => {
   return [...conversations.values()];
@@ -86,40 +126,31 @@ export const createMessage = async ({
   conversationId,
   textContent,
   model,
+  role = "user",
 }: {
   conversationId: string;
   textContent: string;
   model: Model;
+  role?: Exclude<MessageRole, "assistant">;
 }): Promise<Message> => {
   const conversationMessages = requireConversationMessages(conversationId);
 
-  const userMessage: StoredMessage = {
-    id: crypto.randomUUID(),
-    conversationId,
-    textContent,
-    createdAt: new Date().toISOString(),
-    role: "user",
-  };
-
-  conversationMessages.push(userMessage);
+  appendMessage({ conversationId, textContent, role });
 
   const completion = await openai.chat.completions.create({
     model: OPENAI_MODELS[model],
+    response_format: { type: "json_object" },
     messages: conversationMessages.map((message) => ({
       role: message.role,
       content: message.textContent,
     })),
   });
 
-  const assistantMessage: StoredMessage = {
-    id: crypto.randomUUID(),
+  const assistantMessage = appendMessage({
     conversationId,
     textContent: completion.choices[0]?.message.content ?? "",
-    createdAt: new Date().toISOString(),
     role: "assistant",
-  };
+  });
 
-  conversationMessages.push(assistantMessage);
-
-  return toPublicMessage(userMessage);
+  return toPublicMessage(assistantMessage);
 };

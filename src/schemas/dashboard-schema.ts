@@ -77,11 +77,11 @@ export const visualSpecSchema = z.object({
 
 export type VisualSpec = z.infer<typeof visualSpecSchema>;
 
-export const dashboardContractSchema = z.object({
+export const dashboardSchema = z.object({
   version: z.literal(1),
   title: z.string().optional(),
   description: z.string().optional(),
   visuals: z.array(visualSpecSchema),
 });
 
-export type DashboardContract = z.infer<typeof dashboardContractSchema>;
+export type Dashboard = z.infer<typeof dashboardSchema>;
