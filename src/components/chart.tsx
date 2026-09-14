@@ -63,8 +63,9 @@ const COMPOSED_SERIES_ORDER: Record<ChartSeries["type"], number> = {
   line: 2,
 };
 
-function seriesColor(series: ChartSeries, index: number): string {
-  return series.color ?? CHART_COLORS[index % CHART_COLORS.length];
+// Palette de la charte uniquement : l'agent ne choisit pas les couleurs.
+function seriesColor(_series: ChartSeries, index: number): string {
+  return CHART_COLORS[index % CHART_COLORS.length];
 }
 
 function yAxisIdFor(series: ChartSeries): string {
@@ -383,15 +384,19 @@ function renderRechartsChart(chartSpec: ChartSpec, rows: ChartRow[]) {
 }
 
 export function buildChart(chartSpec: ChartSpec, rows: ChartRow[]) {
+  const height = chartSpec.options.height;
+
   return (
-    <ChartContainer
-      config={buildChartConfig(chartSpec, rows)}
-      className="aspect-auto w-full"
-      style={{ height: chartSpec.options.height }}
-      initialDimension={{ width: 320, height: chartSpec.options.height }}
-    >
-      {renderRechartsChart(chartSpec, rows)}
-    </ChartContainer>
+    <div className="w-full" style={{ height }}>
+      <ChartContainer
+        config={buildChartConfig(chartSpec, rows)}
+        className="h-full w-full [&_.recharts-responsive-container]:h-full [&_.recharts-responsive-container]:w-full"
+        style={{ aspectRatio: "auto", height: "100%", width: "100%" }}
+        initialDimension={{ width: 640, height }}
+      >
+        {renderRechartsChart(chartSpec, rows)}
+      </ChartContainer>
+    </div>
   );
 }
 

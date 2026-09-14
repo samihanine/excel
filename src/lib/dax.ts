@@ -443,11 +443,99 @@ export function toRawQueryResult(
 type InfoRow = Record<string, unknown>;
 
 const text = (row: InfoRow, key: string) => String(row[`[${key}]`] ?? "");
-const visible = (row: InfoRow) => row["[IsHidden]"] !== true;
+const flag = (row: InfoRow, key: string) => row[`[${key}]`] === true;
+
+function isAutoDateTable(name: string) {
+  return /^(LocalDateTable_|DateTableTemplate_)/i.test(name);
+}
+
+function isJunkTable(table: InfoRow) {
+  const name = text(table, "Name");
+  return (
+    isAutoDateTable(name) ||
+    flag(table, "IsPrivate") ||
+    flag(table, "ShowAsVariationOnly")
+  );
+}
 
 /**
- * Décrit le modèle sémantique (tables, colonnes, mesures, relations visibles)
- * via les fonctions DAX INFO.VIEW.*, sous forme de texte pour l'agent.
+ * Texte de structure pour l'agent : tables de faits masquées incluses,
+ * tables de dates auto exclues.
+ */
+export function formatSemanticModelStructure({
+  tables,
+  columns,
+  measures,
+  relationships,
+}: {
+  tables: InfoRow[];
+  columns: InfoRow[];
+  measures: InfoRow[];
+  relationships: InfoRow[];
+}) {
+  const activeRelationships = relationships.filter(
+    (row) =>
+      row["[IsActive]"] !== false &&
+      !isAutoDateTable(text(row, "FromTable")) &&
+      !isAutoDateTable(text(row, "ToTable")),
+  );
+  const keyColumns = new Set(
+    activeRelationships.flatMap((row) => [
+      `${text(row, "FromTable")}[${text(row, "FromColumn")}]`,
+      `${text(row, "ToTable")}[${text(row, "ToColumn")}]`,
+    ]),
+  );
+
+  const lines: string[] = [];
+  for (const table of tables) {
+    if (isJunkTable(table)) continue;
+    const name = text(table, "Name");
+    const hiddenTable = flag(table, "IsHidden");
+
+    const tableColumns = columns
+      .filter((row) => text(row, "Table") === name)
+      .filter((row) => text(row, "Type") !== "RowNumber")
+      .filter((row) => {
+        if (!flag(row, "IsHidden")) return true;
+        if (hiddenTable) return true;
+        return keyColumns.has(`${name}[${text(row, "Name")}]`);
+      })
+      .map((row) => `[${text(row, "Name")}] (${text(row, "DataType")})`);
+
+    const tableMeasures = measures
+      .filter((row) => text(row, "Table") === name)
+      .filter((row) => hiddenTable || !flag(row, "IsHidden"))
+      .map((row) => `[${text(row, "Name")}] (${text(row, "DataType")})`);
+
+    if (tableColumns.length === 0 && tableMeasures.length === 0) continue;
+
+    lines.push(
+      hiddenTable
+        ? `### '${name}' (masquée, utilisable en DAX)`
+        : `### '${name}'`,
+    );
+    if (tableColumns.length) {
+      lines.push(`Colonnes : ${tableColumns.join(", ")}`);
+    }
+    if (tableMeasures.length) {
+      lines.push(`Mesures : ${tableMeasures.join(", ")}`);
+    }
+    lines.push("");
+  }
+
+  if (activeRelationships.length) {
+    lines.push(
+      "### Relations",
+      ...activeRelationships.map((row) => `- ${text(row, "Relationship")}`),
+    );
+  }
+
+  return lines.join("\n").trim();
+}
+
+/**
+ * Décrit le modèle sémantique (tables, colonnes, mesures, relations)
+ * via les fonctions DAX INFO.VIEW.*.
  */
 export async function fetchSemanticModelStructure(
   datasetName: string,
@@ -464,34 +552,12 @@ export async function fetchSemanticModelStructure(
     query("INFO.VIEW.RELATIONSHIPS"),
   ]);
 
-  const lines: string[] = [];
-  for (const table of tables.filter(visible)) {
-    const name = text(table, "Name");
-    const tableColumns = columns
-      .filter((row) => visible(row) && text(row, "Table") === name)
-      .filter((row) => text(row, "Type") !== "RowNumber")
-      .map((row) => `[${text(row, "Name")}] (${text(row, "DataType")})`);
-    const tableMeasures = measures
-      .filter((row) => visible(row) && text(row, "Table") === name)
-      .map((row) => `[${text(row, "Name")}] (${text(row, "DataType")})`);
-    if (tableColumns.length === 0 && tableMeasures.length === 0) continue;
-
-    lines.push(`### '${name}'`);
-    if (tableColumns.length)
-      lines.push(`Colonnes : ${tableColumns.join(", ")}`);
-    if (tableMeasures.length)
-      lines.push(`Mesures : ${tableMeasures.join(", ")}`);
-    lines.push("");
-  }
-
-  const activeRelationships = relationships
-    .filter((row) => row["[IsActive]"] === true)
-    .map((row) => `- ${text(row, "Relationship")}`);
-  if (activeRelationships.length) {
-    lines.push("### Relations", ...activeRelationships);
-  }
-
-  return lines.join("\n").trim();
+  return formatSemanticModelStructure({
+    tables,
+    columns,
+    measures,
+    relationships,
+  });
 }
 
 export async function runDax(props: {

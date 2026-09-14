@@ -9,7 +9,8 @@ export const runDaxTool = createTool({
   description:
     "Exécute une requête DAX sur le modèle sémantique du dataset sélectionné et renvoie les colonnes et les premières lignes.",
   prompt: [
-    "Sert à explorer le modèle (VALUES, TOPN, mesures) et à vérifier une requête avant de la placer dans un artefact.",
+    "Exécute une requête métier. La structure du modèle est déjà dans le contexte : n'utilise JAMAIS INFO.VIEW.*, INFO.TABLES, ni une requête dont le seul but est de lister tables/colonnes/mesures.",
+    "VALUES / TOPN d'une colonne : uniquement si une requête métier revient vide et qu'il faut voir les valeurs présentes.",
     "DAX :",
     "- Toujours `'Table'[Colonne]`. Time, Date, Item et les mots réservés : quotes obligatoires (`'Item'[Category]`, pas `Item[Category]`).",
     `- Pour grouper : \`SUMMARIZECOLUMNS('Table'[Colonne], "aliasMesure", [Mesure])\` puis \`SELECTCOLUMNS(..., "aliasDim", 'Table'[Colonne], "aliasMesure", [aliasMesure])\`. Termine par \`ORDERBY\` si tu ranges (TOPN ne garantit pas l'ordre d'affichage).`,
@@ -29,6 +30,11 @@ export const runDaxTool = createTool({
   }),
   response: daxResultSchema,
   function: async ({ dax }, { dataset }) => {
+    if (/\bINFO\s*\./i.test(dax)) {
+      throw new Error(
+        "INFO.* est interdit : la structure du modèle est déjà dans le contexte système. Écris directement la requête métier (SUMMARIZECOLUMNS / CALCULATETABLE / VALUES d'une colonne métier).",
+      );
+    }
     const result = await runDax({
       datasetName: dataset.semanticModelName,
       dax,

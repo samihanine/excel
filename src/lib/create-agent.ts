@@ -79,6 +79,7 @@ function buildSystemPrompt(props: {
     '{"tool":"<nom_outil>","parameters":{...}}',
     "N'appelle qu'un seul outil à la fois. La sortie de l'outil t'est renvoyée dans le message suivant.",
     `Quand tu as la réponse finale pour l'utilisateur, tu DOIS appeler l'outil "${answerUserTool.name}".`,
+    "Le message système suivant décrit le dataset : fais-lui confiance, n'explore pas le schéma.",
     "",
     "## Outils disponibles",
     ...tools,
@@ -91,9 +92,11 @@ function buildSystemPrompt(props: {
 function datasetPrompt(dataset: Dataset) {
   return [
     `Dataset sélectionné : « ${dataset.title} » (modèle sémantique Power BI : « ${dataset.semanticModelName} »).`,
+    "Cette structure est complète et à jour, y compris les tables masquées (ex. table de faits Sales) : elles restent utilisables en DAX (`'Sales'[Colonne]`, [TotalSales]). Interdiction d'appeler INFO.VIEW.* pour la redécouvrir.",
     "",
     "## Structure du modèle",
-    dataset.structure || "(structure inconnue : explore avec runDax)",
+    dataset.structure ||
+      "(structure absente : demande à l'utilisateur de rafraîchir le dataset, n'explore pas avec DAX)",
     "",
     "## Contexte métier",
     dataset.context || "(aucun contexte fourni)",
@@ -168,10 +171,13 @@ export const createAgent = (props: {
   const sendMessage = async ({
     conversationId,
     textContent,
+    displayContent,
     onStatus,
   }: {
     conversationId: string;
     textContent: string;
+    /** Texte affiché dans le chat (sans instruction de rendu). */
+    displayContent?: string;
     onStatus?: (status: string) => void;
   }): Promise<Conversation> => {
     const initial = store.conversations.get(conversationId);
@@ -200,14 +206,14 @@ export const createAgent = (props: {
         ...current,
         title:
           current.messages.length === 0
-            ? titleFromMessage(textContent)
+            ? titleFromMessage(displayContent ?? textContent)
             : current.title,
         messages: [
           ...current.messages,
           {
             id: crypto.randomUUID(),
             role: "user",
-            content: textContent,
+            content: displayContent ?? textContent,
             createdAt: new Date().toISOString(),
             steps: [],
           },

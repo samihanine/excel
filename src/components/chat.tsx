@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import { DatabaseIcon, KeyRoundIcon } from "lucide-react";
+import { DatabaseIcon, DownloadIcon, KeyRoundIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { conversationDump, downloadJson, slugify } from "@/lib/download";
 import { ChatInput } from "@/components/chat-input";
 import { ChatMessages } from "@/components/chat-messages";
 import { ConversationHistorySheet } from "@/components/conversation-history-sheet";
@@ -35,6 +36,21 @@ export const Chat = ({ chat }: { chat: ReturnType<typeof useChat> }) => {
           <KeyRoundIcon />
         </Button>
         <span className="flex-1" />
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Télécharger la conversation"
+          disabled={!chat.conversation}
+          onClick={() => {
+            if (!chat.conversation) return;
+            downloadJson(
+              `conversation-${slugify(chat.conversation.title)}`,
+              conversationDump(chat.conversation),
+            );
+          }}
+        >
+          <DownloadIcon />
+        </Button>
         <CreateConversationButton
           onCreate={() => chat.openConversation(null)}
           disabled={chat.isPending || !chat.conversation}
@@ -53,8 +69,12 @@ export const Chat = ({ chat }: { chat: ReturnType<typeof useChat> }) => {
 
       <ChatInput
         examples={chat.conversation ? [] : (chat.dataset?.examples ?? [])}
+        mentions={chat.mentions}
+        onRemoveMention={chat.removeMention}
         disabled={chat.isPending || !chat.dataset}
-        onSend={(text) => void chat.send(text).catch(() => undefined)}
+        onSend={(text, outputMode) =>
+          void chat.send(text, outputMode).catch(() => undefined)
+        }
       />
     </div>
   );

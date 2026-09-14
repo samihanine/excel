@@ -12,7 +12,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { downloadJson, slugify } from "@/lib/download";
+import { conversationDump, downloadJson, slugify } from "@/lib/download";
 import { store } from "@/lib/storage";
 import { useCollection } from "@/hooks/use-store";
 import type { Conversation } from "@/schemas/conversation-schema";
@@ -26,7 +26,10 @@ function ExportLastN({ conversations }: { conversations: Conversation[] }) {
       className="flex items-center gap-2 border-b p-3"
       onSubmit={(event) => {
         event.preventDefault();
-        downloadJson(`conversations-${n}-dernieres`, conversations.slice(0, n));
+        downloadJson(
+          `conversations-${n}-dernieres`,
+          conversations.slice(0, n).map(conversationDump),
+        );
       }}
     >
       <Input
@@ -118,7 +121,7 @@ export const ConversationHistorySheet = ({
                       onClick={() =>
                         downloadJson(
                           `conversation-${slugify(conversation.title)}`,
-                          conversation,
+                          conversationDump(conversation),
                         )
                       }
                     >

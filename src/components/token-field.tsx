@@ -55,7 +55,9 @@ export const TokenField = ({
         aria-invalid={status === "invalid"}
       />
       {status === "invalid" && error ? (
-        <p className="text-xs text-destructive">{getErrorMessage(error)}</p>
+        <p className="text-xs text-destructive">
+          {getErrorMessage(error).slice(0, 280)}
+        </p>
       ) : hint ? (
         <p className="text-xs text-muted-foreground">{hint}</p>
       ) : null}

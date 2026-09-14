@@ -45,7 +45,10 @@ export function useAiToken() {
   const token = useStoredValue(store.aiToken);
   const query = useQuery({
     queryKey: ["ai", "check", fingerprint(token)],
-    queryFn: () => checkAiToken(token),
+    queryFn: async () => {
+      await checkAiToken(token);
+      return { ok: true as const };
+    },
     enabled: token !== "",
     refetchInterval: CHECK_INTERVAL_MS,
     retry: false,

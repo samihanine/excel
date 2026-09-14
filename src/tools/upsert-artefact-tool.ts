@@ -1,5 +1,6 @@
 import { createTool } from "@/lib/create-tool";
 import { findArtefact } from "@/lib/create-artefact";
+import { saveArtefact } from "@/lib/artefacts";
 import { store } from "@/lib/storage";
 import { z } from "zod";
 
@@ -77,24 +78,11 @@ export const upsertArtefactTool = createTool({
 
     const merged = path ? setAtPath(existing?.data, path, value) : value;
     const data = artefact.schema.parse(merged);
-    const record = {
+    return saveArtefact(conversationId, {
       id,
       type,
       name: name ?? existing?.name ?? id,
       data,
-      updatedAt: new Date().toISOString(),
-    };
-
-    store.conversations.update(conversationId, (current) => ({
-      ...current,
-      updatedAt: record.updatedAt,
-      artefacts: existing
-        ? current.artefacts.map((candidate) =>
-            candidate.id === id ? record : candidate,
-          )
-        : [...current.artefacts, record],
-    }));
-
-    return record;
+    });
   },
 });

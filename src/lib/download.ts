@@ -1,3 +1,20 @@
+import type { Conversation } from "@/schemas/conversation-schema";
+
+/** JSON exportable d'une conversation : messages visibles, traces outils, artefacts. */
+export function conversationDump(conversation: Conversation) {
+  return {
+    id: conversation.id,
+    title: conversation.title,
+    agentName: conversation.agentName,
+    datasetId: conversation.datasetId,
+    createdAt: conversation.createdAt,
+    updatedAt: conversation.updatedAt,
+    messages: conversation.messages,
+    traces: conversation.history,
+    artefacts: conversation.artefacts,
+  };
+}
+
 /** Déclenche le téléchargement d'un fichier JSON côté navigateur. */
 export function downloadJson(filename: string, data: unknown) {
   const blob = new Blob([JSON.stringify(data, null, 2)], {

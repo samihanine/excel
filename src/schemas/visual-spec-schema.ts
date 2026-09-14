@@ -1,12 +1,9 @@
 import { z } from "zod";
 
+// Pas de `color` : la palette dorée (--chart-1 … --chart-8) est appliquée automatiquement.
 const seriesSchema = z.object({
   dataKey: z.string().min(1),
   name: z.string().optional(),
-  color: z
-    .string()
-    .regex(/^#[0-9a-fA-F]{6}$/)
-    .optional(),
   type: z.enum(["line", "bar", "area"]).default("line"),
   yAxisId: z.string().optional(),
   stackId: z.string().optional(),
@@ -62,12 +59,59 @@ export const chartSpecSchema = z.object({
 
 export type ChartSpec = z.infer<typeof chartSpecSchema>;
 
-export const visualSpecSchema = z.object({
+/** Format d'affichage d'une valeur (colonne de table ou placeholder de texte). */
+export const valueFormatSchema = z.enum([
+  "text",
+  "number",
+  "integer",
+  "currency",
+  "percent",
+  "date",
+]);
+
+export type ValueFormat = z.infer<typeof valueFormatSchema>;
+
+const visualBaseSchema = z.object({
   id: z.string(),
   title: z.string(),
   description: z.string().optional(),
-  chartSpec: chartSpecSchema,
   daxQuery: z.string(),
 });
 
+/** Graphique (par défaut si `kind` est absent). */
+export const chartVisualSchema = visualBaseSchema.extend({
+  kind: z.literal("chart").default("chart"),
+  chartSpec: chartSpecSchema,
+});
+
+/** Table paginée : colonnes = alias DAX. */
+export const tableVisualSchema = visualBaseSchema.extend({
+  kind: z.literal("table"),
+  columns: z
+    .array(
+      z.object({
+        dataKey: z.string().min(1),
+        label: z.string().optional(),
+        format: valueFormatSchema.default("text"),
+      }),
+    )
+    .min(1),
+  pageSize: z.number().int().min(1).max(100).default(10),
+});
+
+/** Texte libre avec placeholders `{{alias}}` ou `{{alias|currency}}` (1re ligne du DAX). */
+export const textVisualSchema = visualBaseSchema.extend({
+  kind: z.literal("text"),
+  template: z.string().min(1),
+});
+
+export const visualSpecSchema = z.union([
+  tableVisualSchema,
+  textVisualSchema,
+  chartVisualSchema,
+]);
+
 export type VisualSpec = z.infer<typeof visualSpecSchema>;
+export type ChartVisual = z.infer<typeof chartVisualSchema>;
+export type TableVisual = z.infer<typeof tableVisualSchema>;
+export type TextVisual = z.infer<typeof textVisualSchema>;

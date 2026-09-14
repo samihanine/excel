@@ -31,7 +31,14 @@ function sleep(ms: number) {
 }
 
 export function getErrorMessage(error: unknown) {
-  if (error instanceof Error) return error.message;
+  if (error instanceof Error) {
+    if (
+      /query data cannot be undefined|affected query key/i.test(error.message)
+    ) {
+      return "La vérification du jeton a échoué. Réessaie dans quelques secondes.";
+    }
+    return error.message;
+  }
   if (typeof error === "string") return error;
   try {
     return JSON.stringify(error);

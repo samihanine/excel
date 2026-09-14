@@ -30,7 +30,10 @@ function Page() {
         <ResizablePanel minSize={400}>
           <DisplayArtefact
             artefacts={chat.conversation?.artefacts ?? []}
+            conversationId={chat.conversation?.id ?? null}
+            getConversationId={chat.ensureConversation}
             datasetName={chat.dataset?.semanticModelName ?? ""}
+            onCite={chat.citeVisual}
           />
         </ResizablePanel>
       </ResizablePanelGroup>
