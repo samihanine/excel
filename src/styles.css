@@ -1,0 +1,226 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/cormorant-garamond";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: "Inter Variable", sans-serif;
+  --font-heading: "Cormorant Garamond Variable", "Times New Roman", serif;
+  --font-serif: "Cormorant Garamond Variable", "Times New Roman", serif;
+  --color-gold: var(--gold);
+  --color-gold-foreground: var(--gold-foreground);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-8: var(--chart-8);
+  --color-chart-7: var(--chart-7);
+  --color-chart-6: var(--chart-6);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  /* Palette Dior : ivoire pierre, noir profond, or champagne. */
+  --background: oklch(0.975 0.006 95);
+  --foreground: oklch(0.12 0.006 70);
+  --card: oklch(0.992 0.003 95);
+  --card-foreground: oklch(0.12 0.006 70);
+  --popover: oklch(0.992 0.003 95);
+  --popover-foreground: oklch(0.12 0.006 70);
+  --primary: oklch(0.12 0.006 70);
+  --primary-foreground: oklch(0.975 0.006 95);
+  --secondary: oklch(0.95 0.008 95);
+  --secondary-foreground: oklch(0.22 0.006 70);
+  --muted: oklch(0.95 0.008 95);
+  --muted-foreground: oklch(0.48 0.012 75);
+  --accent: oklch(0.94 0.012 92);
+  --accent-foreground: oklch(0.12 0.006 70);
+  --destructive: oklch(0.5 0.16 27);
+  --border: oklch(0.88 0.012 90);
+  --input: oklch(0.86 0.012 90);
+  --ring: oklch(0.76 0.048 92);
+  --gold: oklch(0.76 0.048 92);
+  --gold-foreground: oklch(0.12 0.006 70);
+  --chart-1: oklch(0.76 0.048 92);
+  --chart-2: oklch(0.18 0.008 70);
+  --chart-3: oklch(0.86 0.028 92);
+  --chart-4: oklch(0.55 0.01 75);
+  --chart-5: oklch(0.68 0.04 88);
+  --chart-6: oklch(0.38 0.012 70);
+  --chart-7: oklch(0.92 0.016 95);
+  --chart-8: oklch(0.72 0.01 80);
+  --radius: 0.25rem;
+  --sidebar: oklch(0.975 0.006 95);
+  --sidebar-foreground: oklch(0.12 0.006 70);
+  --sidebar-primary: oklch(0.12 0.006 70);
+  --sidebar-primary-foreground: oklch(0.975 0.006 95);
+  --sidebar-accent: oklch(0.94 0.012 92);
+  --sidebar-accent-foreground: oklch(0.12 0.006 70);
+  --sidebar-border: oklch(0.88 0.012 90);
+  --sidebar-ring: oklch(0.76 0.048 92);
+}
+
+.dark {
+  --background: oklch(0.15 0.004 60);
+  --foreground: oklch(0.96 0.006 85);
+  --card: oklch(0.19 0.004 60);
+  --card-foreground: oklch(0.96 0.006 85);
+  --popover: oklch(0.19 0.004 60);
+  --popover-foreground: oklch(0.96 0.006 85);
+  --primary: oklch(0.96 0.006 85);
+  --primary-foreground: oklch(0.15 0.004 60);
+  --secondary: oklch(0.25 0.004 60);
+  --secondary-foreground: oklch(0.96 0.006 85);
+  --muted: oklch(0.25 0.004 60);
+  --muted-foreground: oklch(0.7 0.006 80);
+  --accent: oklch(0.27 0.004 60);
+  --accent-foreground: oklch(0.96 0.006 85);
+  --destructive: oklch(0.65 0.17 25);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.8 0.052 92);
+  --gold: oklch(0.8 0.052 92);
+  --gold-foreground: oklch(0.14 0.006 70);
+  --chart-1: oklch(0.8 0.052 92);
+  --chart-2: oklch(0.93 0.01 95);
+  --chart-3: oklch(0.62 0.04 88);
+  --chart-4: oklch(0.58 0.01 75);
+  --chart-5: oklch(0.86 0.03 92);
+  --chart-6: oklch(0.42 0.03 85);
+  --chart-7: oklch(0.72 0.012 80);
+  --chart-8: oklch(0.32 0.01 70);
+  --sidebar: oklch(0.19 0.004 60);
+  --sidebar-foreground: oklch(0.96 0.006 85);
+  --sidebar-primary: oklch(0.8 0.052 92);
+  --sidebar-primary-foreground: oklch(0.15 0.004 60);
+  --sidebar-accent: oklch(0.27 0.004 60);
+  --sidebar-accent-foreground: oklch(0.96 0.006 85);
+  --sidebar-border: oklch(1 0 0 / 12%);
+  --sidebar-ring: oklch(0.8 0.052 92);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-heading;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@utility eyebrow {
+  @apply text-[0.6875rem] font-medium tracking-[0.18em] text-muted-foreground uppercase;
+}
+
+@utility hairline {
+  @apply border-t border-border;
+}
+
+@utility report-surface {
+  background-color: oklch(0.978 0.006 95);
+  background-image:
+    linear-gradient(
+      155deg,
+      oklch(0.992 0.004 95) 0%,
+      oklch(0.976 0.008 95) 42%,
+      oklch(0.958 0.014 92) 100%
+    ),
+    radial-gradient(
+      ellipse 80% 50% at 8% 0%,
+      oklch(0.76 0.048 92 / 0.12),
+      transparent 58%
+    ),
+    radial-gradient(
+      ellipse 55% 40% at 100% 12%,
+      oklch(0.86 0.028 92 / 0.1),
+      transparent 52%
+    );
+}
+
+/* Toile de Jouy en filigrane : SVG recoloré en or très clair (fond transparent),
+   posé sur la zone rapport uniquement. Le fond d'un scroll container couvre toute
+   la zone défilante, donc le motif suit le contenu. */
+@utility report-pattern {
+  background-image: url("/pattern-toile.svg");
+  background-size: 560px auto;
+  background-repeat: repeat;
+  background-position: center top;
+}
+
+.dark .report-pattern {
+  background-image: none;
+}
+
+.dark .report-surface {
+  background-color: oklch(0.18 0.008 70);
+  background-image:
+    radial-gradient(
+      ellipse 90% 55% at 0% 0%,
+      oklch(0.8 0.052 92 / 0.12),
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 70% 45% at 100% 8%,
+      oklch(0.62 0.04 88 / 0.12),
+      transparent 50%
+    ),
+    repeating-linear-gradient(
+      180deg,
+      transparent,
+      transparent 3px,
+      oklch(1 0 0 / 0.03) 3px,
+      oklch(1 0 0 / 0.03) 4px
+    );
+}
