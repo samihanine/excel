@@ -16,7 +16,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { ChartSpec } from "@/schemas/dashboard-schema";
+import type { ChartSpec } from "@/schemas/visual-spec-schema";
 import {
   Card,
   CardContent,

@@ -1,4 +1,4 @@
-import type { ChartSpec } from "@/schemas/dashboard-schema";
+import type { ChartSpec } from "@/schemas/visual-spec-schema";
 import { Chart } from "./chart";
 import { useMutation } from "@tanstack/react-query";
 import { runDax } from "@/lib/dax";

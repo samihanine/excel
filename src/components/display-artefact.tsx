@@ -1,4 +1,4 @@
-import type { ChartSpec, VisualSpec } from "@/schemas/dashboard-schema";
+import type { ChartSpec, VisualSpec } from "@/schemas/visual-spec-schema";
 import { Chart } from "./chart";
 import { DaxChart } from "./dax-chart";
 
