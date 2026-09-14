@@ -1,9 +1,5 @@
 import { z } from "zod";
-import {
-  CURRENT_SEMANTIC_MODEL_STORAGE_KEY,
-  PBIX_ACCESS_TOKEN_STORAGE_KEY,
-  readJson,
-} from "./storage";
+import { store } from "./storage";
 
 export const scalarValueSchema = z.union([
   z.string(),
@@ -83,14 +79,12 @@ type ExecuteQueriesResponse = {
 
 const datasetIdCache = new Map<string, string>();
 
-/** Lit le jeton Power BI (localStorage, puis `VITE_PUBLIC_PBIX_ACCESS_TOKEN`). */
+/** Lit le jeton Power BI depuis le stockage local. */
 export function readPbixAccessToken(): string {
-  const token = readJson<string>(PBIX_ACCESS_TOKEN_STORAGE_KEY, "");
-
+  const token = store.pbixToken.read();
   if (token) return token;
-
   throw new DaxError(
-    "Jeton Power BI manquant. Collez-le depuis l'onboarding ou lance : bun run pbi:token.",
+    "Jeton Power BI manquant. Renseigne-le dans la page Tokens ou lance : bun run pbi:token.",
   );
 }
 
@@ -446,26 +440,70 @@ export function toRawQueryResult(
   };
 }
 
+type InfoRow = Record<string, unknown>;
+
+const text = (row: InfoRow, key: string) => String(row[`[${key}]`] ?? "");
+const visible = (row: InfoRow) => row["[IsHidden]"] !== true;
+
+/**
+ * Décrit le modèle sémantique (tables, colonnes, mesures, relations visibles)
+ * via les fonctions DAX INFO.VIEW.*, sous forme de texte pour l'agent.
+ */
+export async function fetchSemanticModelStructure(
+  datasetName: string,
+  accessToken = readPbixAccessToken(),
+): Promise<string> {
+  const query = (fn: string) =>
+    executeDax(datasetName, accessToken, `EVALUATE ${fn}()`).then(
+      (result) => result.rows,
+    );
+  const [tables, columns, measures, relationships] = await Promise.all([
+    query("INFO.VIEW.TABLES"),
+    query("INFO.VIEW.COLUMNS"),
+    query("INFO.VIEW.MEASURES"),
+    query("INFO.VIEW.RELATIONSHIPS"),
+  ]);
+
+  const lines: string[] = [];
+  for (const table of tables.filter(visible)) {
+    const name = text(table, "Name");
+    const tableColumns = columns
+      .filter((row) => visible(row) && text(row, "Table") === name)
+      .filter((row) => text(row, "Type") !== "RowNumber")
+      .map((row) => `[${text(row, "Name")}] (${text(row, "DataType")})`);
+    const tableMeasures = measures
+      .filter((row) => visible(row) && text(row, "Table") === name)
+      .map((row) => `[${text(row, "Name")}] (${text(row, "DataType")})`);
+    if (tableColumns.length === 0 && tableMeasures.length === 0) continue;
+
+    lines.push(`### '${name}'`);
+    if (tableColumns.length)
+      lines.push(`Colonnes : ${tableColumns.join(", ")}`);
+    if (tableMeasures.length)
+      lines.push(`Mesures : ${tableMeasures.join(", ")}`);
+    lines.push("");
+  }
+
+  const activeRelationships = relationships
+    .filter((row) => row["[IsActive]"] === true)
+    .map((row) => `- ${text(row, "Relationship")}`);
+  if (activeRelationships.length) {
+    lines.push("### Relations", ...activeRelationships);
+  }
+
+  return lines.join("\n").trim();
+}
+
 export async function runDax(props: {
-  datasetName?: string;
+  datasetName: string;
   dax: string;
   accessToken?: string;
 }): Promise<DaxResult> {
-  const datasetName =
-    props.datasetName ??
-    readJson<string>(CURRENT_SEMANTIC_MODEL_STORAGE_KEY, "");
-
-  if (datasetName === "") {
-    throw new DaxError("No dataset selected");
+  if (!props.datasetName.trim()) {
+    throw new DaxError("Aucun modèle sémantique associé au dataset.");
   }
   const accessToken = props.accessToken ?? readPbixAccessToken();
-
-  if (accessToken === "") {
-    throw new DaxError("No PBIX access token found.");
-  }
-
-  const dax = props.dax;
   const startedAt = Date.now();
-  const { rows } = await executeDax(datasetName, accessToken, dax);
-  return toRawQueryResult(datasetName, rows, Date.now() - startedAt);
+  const { rows } = await executeDax(props.datasetName, accessToken, props.dax);
+  return toRawQueryResult(props.datasetName, rows, Date.now() - startedAt);
 }

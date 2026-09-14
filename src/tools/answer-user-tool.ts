@@ -3,17 +3,16 @@ import { z } from "zod";
 
 export const answerUserTool = createTool({
   name: "answerUser",
-  description: "Answer the user's question",
+  description: "Envoie la réponse finale à l'utilisateur et termine le tour.",
   parameters: z.object({
-    question: z.string(),
+    answer: z.string().min(1),
   }),
   response: z.object({
     answer: z.string(),
   }),
-  prompt: ["You can answer the user's question"].join("\n"),
-  function: async (props) => {
-    return {
-      answer: props.question,
-    };
-  },
+  prompt: [
+    "Réponse courte et concrète, en français, en texte brut (pas de markdown : ni `**`, ni `#`, ni backticks ; les tirets de liste sont acceptés).",
+    "Si tu as créé ou modifié un artefact, dis-le en une phrase : il est déjà affiché à l'utilisateur, ne le recopie pas.",
+  ].join("\n"),
+  function: async ({ answer }) => ({ answer }),
 });

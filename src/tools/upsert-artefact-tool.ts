@@ -1,88 +1,100 @@
 import { createTool } from "@/lib/create-tool";
+import { findArtefact } from "@/lib/create-artefact";
+import { store } from "@/lib/storage";
 import { z } from "zod";
-import {
-  CURRENT_CONVERSATION_STORAGE_KEY,
-  readJson,
-  writeJson,
-} from "@/lib/storage";
 
-function setAtPath(
-  object: Record<string, unknown>,
-  path: string,
-  value: unknown,
-) {
+const FORBIDDEN_KEYS = new Set(["__proto__", "constructor", "prototype"]);
+
+/** Écrit `value` à `path` (ex. `visuals.0.title`) dans une copie de `object`. */
+export function setAtPath(object: unknown, path: string, value: unknown) {
   const keys = path.split(".").filter(Boolean);
-
-  if (keys.length === 0) {
+  if (keys.length === 0)
     throw new Error("Le chemin JSON ne peut pas être vide.");
-  }
-
-  if (
-    keys.some((key) => ["__proto__", "constructor", "prototype"].includes(key))
-  ) {
+  if (keys.some((key) => FORBIDDEN_KEYS.has(key))) {
     throw new Error("Chemin JSON non autorisé.");
   }
 
-  const result = structuredClone(object);
-  let current: Record<string, unknown> = result;
+  const root: unknown = structuredClone(object ?? {});
+  let current = root as Record<string, unknown>;
 
-  for (const key of keys.slice(0, -1)) {
-    if (
-      typeof current[key] !== "object" ||
-      current[key] === null ||
-      Array.isArray(current[key])
-    ) {
-      current[key] = {};
+  for (const [index, key] of keys.slice(0, -1).entries()) {
+    const nextKey = keys[index + 1];
+    const existing = current[key];
+    if (typeof existing !== "object" || existing === null) {
+      current[key] = /^\d+$/.test(nextKey) ? [] : {};
     }
-
     current = current[key] as Record<string, unknown>;
   }
 
   current[keys.at(-1)!] = value;
-
-  return result;
+  return root;
 }
 
 export const upsertArtefactTool = createTool({
   name: "upsertArtefact",
-  description: "Upsert an artefact",
-
+  description:
+    "Crée ou met à jour un artefact affiché à l'utilisateur. Sans `path`, `value` remplace tout le contenu ; avec `path`, seule cette propriété est modifiée.",
   parameters: z.object({
-    artefactId: z.string(),
-    value: z.string(),
+    type: z.string().min(1),
+    id: z.string().min(1),
+    name: z.string().min(1).optional(),
+    path: z.string().optional(),
+    value: z.unknown(),
   }),
-
   response: z.object({
-    artefactJson: z.string(),
+    id: z.string(),
+    type: z.string(),
+    name: z.string(),
+    data: z.unknown(),
   }),
-
   prompt: [
-    "You are a helpful assistant that updates a specific property in a JSON object.",
+    "- `type` : un des types d'artefacts listés plus bas ; `id` : identifiant stable en kebab-case (ex. `ventes-2014`).",
+    "- `name` : titre de l'onglet affiché à l'utilisateur (obligatoire à la création).",
+    "- Création : envoie tout le contenu dans `value`, sans `path`.",
+    "- Retouche : `path` en notation pointée (`visuals.0.title`, `visuals.2`) et `value` la nouvelle valeur.",
+    "- Le contenu final est validé par le schéma du type : en cas d'erreur rien n'est écrit, corrige et renvoie.",
+    "- Plusieurs artefacts du même type sont possibles, utilise des `id` différents.",
   ].join("\n"),
+  function: async (
+    { type, id, name, path, value },
+    { conversationId, artefacts },
+  ) => {
+    const artefact = findArtefact(artefacts, type);
+    const conversation = store.conversations.get(conversationId);
+    if (!conversation) throw new Error("Conversation introuvable.");
 
-  function: async ({ artefactId, value }) => {
-    const path = `${CURRENT_CONVERSATION_STORAGE_KEY}-${artefactId}`;
-    let oldJson = readJson<any>(path, {});
-
-    if (
-      typeof oldJson !== "object" ||
-      oldJson === null ||
-      Array.isArray(oldJson)
-    ) {
-      oldJson = {} as Record<string, unknown>;
-      writeJson(path, oldJson);
+    const existing = conversation.artefacts.find(
+      (candidate) => candidate.id === id,
+    );
+    if (existing && existing.type !== type) {
+      throw new Error(
+        `L'artefact « ${id} » est de type « ${existing.type} », pas « ${type} ».`,
+      );
+    }
+    if (!existing && !name) {
+      throw new Error("`name` est obligatoire pour créer un artefact.");
     }
 
-    const updatedJson = setAtPath(
-      oldJson as Record<string, unknown>,
-      artefactId,
-      value,
-    );
-
-    writeJson(path, updatedJson);
-
-    return {
-      artefactJson: JSON.stringify(updatedJson),
+    const merged = path ? setAtPath(existing?.data, path, value) : value;
+    const data = artefact.schema.parse(merged);
+    const record = {
+      id,
+      type,
+      name: name ?? existing?.name ?? id,
+      data,
+      updatedAt: new Date().toISOString(),
     };
+
+    store.conversations.update(conversationId, (current) => ({
+      ...current,
+      updatedAt: record.updatedAt,
+      artefacts: existing
+        ? current.artefacts.map((candidate) =>
+            candidate.id === id ? record : candidate,
+          )
+        : [...current.artefacts, record],
+    }));
+
+    return record;
   },
 });

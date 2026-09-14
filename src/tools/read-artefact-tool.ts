@@ -1,23 +1,26 @@
 import { createTool } from "@/lib/create-tool";
+import { store } from "@/lib/storage";
 import { z } from "zod";
-import type { Artefact } from "@/lib/create-artefact";
-import { CURRENT_CONVERSATION_STORAGE_KEY, readJson } from "@/lib/storage";
 
 export const readArtefactTool = createTool({
   name: "readArtefact",
-  description: "Read an artefact",
+  description: "Lit le contenu complet d'un artefact de la conversation.",
   parameters: z.object({
-    artefactId: z.string(),
+    id: z.string().min(1),
   }),
   response: z.object({
-    artefactJson: z.string(),
+    id: z.string(),
+    type: z.string(),
+    name: z.string(),
+    data: z.unknown(),
   }),
-  prompt: ["You can read an artefact"].join("\n"),
-  function: async (props) => {
-    const path = `${CURRENT_CONVERSATION_STORAGE_KEY}-${props.artefactId}`;
-    const artefactJson = readJson<any>(path, {}) as Artefact;
-    return {
-      artefactJson: JSON.stringify(artefactJson),
-    };
+  prompt:
+    "Utilise-le avant de retoucher un artefact avec `path`, pour connaître sa structure actuelle.",
+  function: async ({ id }, { conversationId }) => {
+    const artefact = store.conversations
+      .get(conversationId)
+      ?.artefacts.find((candidate) => candidate.id === id);
+    if (!artefact) throw new Error(`Artefact « ${id} » introuvable.`);
+    return artefact;
   },
 });

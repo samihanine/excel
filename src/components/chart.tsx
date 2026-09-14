@@ -40,7 +40,7 @@ import {
 } from "@/components/ui/empty";
 
 export type ChartRow = {
-  [key: string]: string | number | null | undefined;
+  [key: string]: string | number | boolean | null | undefined;
 };
 
 type ChartSeries = ChartSpec["series"][number];
