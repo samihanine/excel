@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { PBIX_ACCESS_TOKEN_STORAGE_KEY, readJson } from "./storage";
+import {
+  CURRENT_SEMANTIC_MODEL_STORAGE_KEY,
+  PBIX_ACCESS_TOKEN_STORAGE_KEY,
+  readJson,
+} from "./storage";
 
 export const scalarValueSchema = z.union([
   z.string(),
@@ -442,11 +446,25 @@ export function toRawQueryResult(
   };
 }
 
-export async function runDax(
-  datasetName: string,
-  dax: string,
-  accessToken = readPbixAccessToken(),
-): Promise<DaxResult> {
+export async function runDax(props: {
+  datasetName?: string;
+  dax: string;
+  accessToken?: string;
+}): Promise<DaxResult> {
+  const datasetName =
+    props.datasetName ??
+    readJson<string>(CURRENT_SEMANTIC_MODEL_STORAGE_KEY, "");
+
+  if (datasetName === "") {
+    throw new DaxError("No dataset selected");
+  }
+  const accessToken = props.accessToken ?? readPbixAccessToken();
+
+  if (accessToken === "") {
+    throw new DaxError("No PBIX access token found.");
+  }
+
+  const dax = props.dax;
   const startedAt = Date.now();
   const { rows } = await executeDax(datasetName, accessToken, dax);
   return toRawQueryResult(datasetName, rows, Date.now() - startedAt);

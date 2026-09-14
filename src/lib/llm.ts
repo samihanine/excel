@@ -88,9 +88,7 @@ export const addMessage = async ({
   textContent: string;
   role: MessageRole;
 }): Promise<Message> => {
-  return toPublicMessage(
-    appendMessage({ conversationId, textContent, role }),
-  );
+  return toPublicMessage(appendMessage({ conversationId, textContent, role }));
 };
 
 export const getConversations = async (): Promise<Conversation[]> => {

@@ -31,6 +31,8 @@
 - `src/hooks`: Reusable React hooks and TanStack Query hooks.
 - `src/lib`: API clients, schemas, and domain utilities.
 - `src/tools`: Actions DAX, visuels et téléchargement.
+- `src/agents`: Agents.
+- `src/schemas`: Schemas.
 - `src/routes`: TanStack Router routes.
 - `test`: Vitest, regroupés par domaine (peu de fichiers).
 - `public`: Static assets.

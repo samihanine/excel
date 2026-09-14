@@ -44,6 +44,7 @@ async function createTestAgent() {
     description: "Un agent de test",
     prompt: "Tu aides l'utilisateur.",
     tools: [echoTool],
+    artefacts: [],
   });
 }
 

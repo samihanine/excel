@@ -5,6 +5,7 @@ import { addMessage, createConversation, createMessage } from "./llm";
 import { answerUserTool } from "@/tools/answer-user-tool";
 import { MAX_TOOL_CALLS } from "./constants";
 import { getErrorMessage } from "./retry";
+import type { Artefact } from "./create-artefact";
 
 const agentCallSchema = z.object({
   tool: z.string().min(1),
@@ -106,6 +107,7 @@ export const createAgent = async (props: {
   description: string;
   prompt: string;
   tools: Tool[];
+  artefacts: Artefact[];
 }) => {
   const tools = uniqueTools([...props.tools, answerUserTool]);
   const toolsByName = new Map(tools.map((tool) => [tool.name, tool]));

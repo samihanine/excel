@@ -64,13 +64,8 @@ export type ChartSpec = z.infer<typeof chartSpecSchema>;
 
 export const visualSpecSchema = z.object({
   id: z.string(),
-  dataSpec: z.array(
-    z.object({
-      key: z.string(),
-      label: z.string(),
-      type: z.enum(["text", "number"]),
-    }),
-  ),
+  title: z.string(),
+  description: z.string().optional(),
   chartSpec: chartSpecSchema,
   daxQuery: z.string(),
 });

@@ -27,15 +27,6 @@ export const runDaxTool = createTool({
   }),
   response: daxResultSchema,
   function: async (query) => {
-    const datasetName = readJson<string>(
-      CURRENT_SEMANTIC_MODEL_STORAGE_KEY,
-      "",
-    );
-
-    if (datasetName === "") {
-      throw new Error("No dataset selected");
-    }
-
-    return await runDax(datasetName, query.dax);
+    return await runDax({ dax: query.dax });
   },
 });

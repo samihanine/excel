@@ -1,6 +1,10 @@
 import { createTool } from "@/lib/create-tool";
 import { z } from "zod";
-import { readJson, writeJson } from "@/lib/storage";
+import {
+  CURRENT_CONVERSATION_STORAGE_KEY,
+  readJson,
+  writeJson,
+} from "@/lib/storage";
 
 function setAtPath(
   object: Record<string, unknown>,
@@ -39,29 +43,26 @@ function setAtPath(
   return result;
 }
 
-export const upsertJsonTool = createTool({
-  name: "upsertJson",
-  description:
-    "Met à jour une propriété précise d'un objet JSON stocké, via un chemin séparé par des points.",
+export const upsertArtefactTool = createTool({
+  name: "upsertArtefact",
+  description: "Upsert an artefact",
 
   parameters: z.object({
-    storageKey: z.string(),
-    path: z
-      .string()
-      .describe("Chemin à modifier, par exemple: user.preferences.theme"),
-    value: z.unknown().describe("Nouvelle valeur à enregistrer"),
+    artefactId: z.string(),
+    value: z.string(),
   }),
 
   response: z.object({
-    json: z.string(),
+    artefactJson: z.string(),
   }),
 
   prompt: [
     "You are a helpful assistant that updates a specific property in a JSON object.",
   ].join("\n"),
 
-  function: async ({ storageKey, path, value }) => {
-    let oldJson = readJson(storageKey, {});
+  function: async ({ artefactId, value }) => {
+    const path = `${CURRENT_CONVERSATION_STORAGE_KEY}-${artefactId}`;
+    let oldJson = readJson<any>(path, {});
 
     if (
       typeof oldJson !== "object" ||
@@ -69,19 +70,19 @@ export const upsertJsonTool = createTool({
       Array.isArray(oldJson)
     ) {
       oldJson = {} as Record<string, unknown>;
-      writeJson(storageKey, oldJson);
+      writeJson(path, oldJson);
     }
 
     const updatedJson = setAtPath(
       oldJson as Record<string, unknown>,
-      path,
+      artefactId,
       value,
     );
 
-    writeJson(storageKey, updatedJson);
+    writeJson(path, updatedJson);
 
     return {
-      json: JSON.stringify(updatedJson),
+      artefactJson: JSON.stringify(updatedJson),
     };
   },
 });
