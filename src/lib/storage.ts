@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { datasetSchema } from "@/schemas/dataset-schema";
 import { conversationSchema } from "@/schemas/conversation-schema";
+import { contextFileSchema } from "@/schemas/context-file-schema";
 
 /**
  * Stockage local typé avec zod.
@@ -184,5 +185,6 @@ export const store = {
     null,
   ),
   datasets: defineCollection("dataset", datasetSchema),
+  contextFiles: defineCollection("context-file", contextFileSchema),
   conversations: defineCollection("conversation", conversationSchema),
 };

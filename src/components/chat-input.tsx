@@ -1,39 +1,41 @@
 import * as React from "react";
-import { AtSignIcon, SendHorizontalIcon, XIcon } from "lucide-react";
+import {
+  AtSignIcon,
+  LayersIcon,
+  SendHorizontalIcon,
+  XIcon,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { MultiSelect } from "@/components/multi-select";
 import type { VisualMention } from "@/components/visual-card";
-import { OUTPUT_MODES } from "@/lib/output-mode";
-import type { OutputMode } from "@/lib/output-mode";
 
 export const ChatInput = ({
   examples,
   mentions,
   onRemoveMention,
+  artefactOptions,
+  allowedArtefacts,
+  onAllowedArtefactsChange,
   disabled,
   onSend,
 }: {
   examples: string[];
   mentions: VisualMention[];
   onRemoveMention: (visualId: string) => void;
+  artefactOptions: string[];
+  allowedArtefacts: string[];
+  onAllowedArtefactsChange: (next: string[]) => void;
   disabled: boolean;
-  onSend: (text: string, outputMode: OutputMode) => void;
+  onSend: (text: string) => void;
 }) => {
   const [value, setValue] = React.useState("");
-  const [outputMode, setOutputMode] = React.useState<OutputMode>("auto");
 
   const submit = () => {
     const text = value.trim();
     if (!text || disabled) return;
-    onSend(text, outputMode);
+    onSend(text);
     setValue("");
   };
 
@@ -78,7 +80,7 @@ export const ChatInput = ({
         </div>
       ) : null}
       <form
-        className="flex items-stretch gap-2"
+        className="flex items-start gap-2"
         onSubmit={(event) => {
           event.preventDefault();
           submit();
@@ -99,35 +101,22 @@ export const ChatInput = ({
             }
           }}
         />
-        <Select
-          items={OUTPUT_MODES.map((mode) => ({
-            value: mode.value,
-            label: mode.label,
+        <MultiSelect
+          label="Artefacts"
+          size="default"
+          icon={<LayersIcon data-icon="inline-start" />}
+          emptyLabel="Texte seul"
+          options={artefactOptions.map((name) => ({
+            value: name,
+            label: name,
           }))}
-          value={outputMode}
-          onValueChange={(next) => {
-            if (typeof next === "string") setOutputMode(next);
-          }}
+          value={allowedArtefacts}
+          onChange={onAllowedArtefactsChange}
           disabled={disabled}
-        >
-          <SelectTrigger
-            className="h-9 w-36 shrink-0 self-start rounded-4xl"
-            aria-label="Type de résultat"
-          >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {OUTPUT_MODES.map((mode) => (
-              <SelectItem key={mode.value} value={mode.value}>
-                {mode.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        />
         <Button
           type="submit"
           size="icon"
-          className="self-start"
           aria-label="Envoyer"
           disabled={disabled || !value.trim()}
         >

@@ -9,8 +9,10 @@ export const runDaxTool = createTool({
   description:
     "Exécute une requête DAX sur le modèle sémantique du dataset sélectionné et renvoie les colonnes et les premières lignes.",
   prompt: [
-    "Exécute une requête métier. La structure du modèle est déjà dans le contexte : n'utilise JAMAIS INFO.VIEW.*, INFO.TABLES, ni une requête dont le seul but est de lister tables/colonnes/mesures.",
+    "Quand l'utiliser : dès qu'un chiffre, une liste ou une comparaison issue du modèle est nécessaire. Question simple = une requête ; question complexe = autant de requêtes que de grains utiles, chacune apportant une info nouvelle. Pas de quota, mais pas de requête inutile (rejouer une requête réussie, VALUES déjà connu).",
+    "La structure du modèle (tables, colonnes, mesures, y compris les tables masquées) est dans le message système « Dataset sélectionné » : n'utilise JAMAIS INFO.VIEW.*, INFO.TABLES, ni une requête dont le seul but est de lister le schéma. Utilise les noms tels qu'ils y figurent.",
     "VALUES / TOPN d'une colonne : uniquement si une requête métier revient vide et qu'il faut voir les valeurs présentes.",
+    "Après une erreur : lis le message, corrige et réessaie. Au bout de 2 échecs sur la même idée, change d'approche ou demande une précision à l'utilisateur.",
     "DAX :",
     "- Toujours `'Table'[Colonne]`. Time, Date, Item et les mots réservés : quotes obligatoires (`'Item'[Category]`, pas `Item[Category]`).",
     `- Pour grouper : \`SUMMARIZECOLUMNS('Table'[Colonne], "aliasMesure", [Mesure])\` puis \`SELECTCOLUMNS(..., "aliasDim", 'Table'[Colonne], "aliasMesure", [aliasMesure])\`. Termine par \`ORDERBY\` si tu ranges (TOPN ne garantit pas l'ordre d'affichage).`,

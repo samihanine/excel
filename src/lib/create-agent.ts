@@ -11,6 +11,7 @@ import { listArtefactsTool } from "@/tools/list-artefact-tool";
 import { readArtefactTool } from "@/tools/read-artefact-tool";
 import { upsertArtefactTool } from "@/tools/upsert-artefact-tool";
 import type { Dataset } from "@/schemas/dataset-schema";
+import type { ContextFile } from "@/schemas/context-file-schema";
 import type {
   AgentStep,
   Conversation,
@@ -103,6 +104,24 @@ function datasetPrompt(dataset: Dataset) {
   ].join("\n");
 }
 
+function contextFilesPrompt(files: ContextFile[]) {
+  return [
+    "## Fichiers de contexte fournis par l'utilisateur",
+    ...files.map(
+      (file) => `### ${file.title || "Sans titre"}\n${file.content}`,
+    ),
+  ].join("\n\n");
+}
+
+/** Instruction ajoutée à la fin du message envoyé au LLM (pas au texte affiché). */
+function allowedArtefactsPrompt(allowed: string[], all: Artefact[]) {
+  if (all.length === 0) return "";
+  if (allowed.length === 0)
+    return "\n\n[Aucun artefact autorisé pour cette réponse : n'appelle pas upsertArtefact, réponds en texte.]";
+  if (allowed.length === all.length) return "";
+  return `\n\n[Artefacts autorisés pour cette réponse : ${allowed.join(", ")}. N'en crée pas d'autre type.]`;
+}
+
 function extractJsonObject(text: string): unknown {
   const trimmed = text.trim();
   const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
@@ -149,19 +168,34 @@ export const createAgent = (props: {
   const systemPrompt = buildSystemPrompt({ ...props, tools });
 
   /** Crée le dossier de conversation avec le prompt système et le contexte du dataset. */
-  const createConversation = ({ dataset }: { dataset: Dataset }) => {
+  const createConversation = ({
+    dataset,
+    contextFiles = [],
+  }: {
+    dataset: Dataset;
+    contextFiles?: ContextFile[];
+  }) => {
     const now = new Date().toISOString();
     return store.conversations.set({
       id: crypto.randomUUID(),
       title: "Nouvelle conversation",
       agentName: props.name,
       datasetId: dataset.id,
+      contextFileIds: contextFiles.map((file) => file.id),
       createdAt: now,
       updatedAt: now,
       messages: [],
       history: [
         { role: "system", content: systemPrompt },
         { role: "system", content: datasetPrompt(dataset) },
+        ...(contextFiles.length
+          ? [
+              {
+                role: "system" as const,
+                content: contextFilesPrompt(contextFiles),
+              },
+            ]
+          : []),
       ],
       artefacts: [],
     });
@@ -172,12 +206,15 @@ export const createAgent = (props: {
     conversationId,
     textContent,
     displayContent,
+    allowedArtefacts,
     onStatus,
   }: {
     conversationId: string;
     textContent: string;
     /** Texte affiché dans le chat (sans instruction de rendu). */
     displayContent?: string;
+    /** Types d'artefacts autorisés pour ce tour (tous si absent). */
+    allowedArtefacts?: string[];
     onStatus?: (status: string) => void;
   }): Promise<Conversation> => {
     const initial = store.conversations.get(conversationId);
@@ -218,7 +255,17 @@ export const createAgent = (props: {
             steps: [],
           },
         ],
-        history: [...current.history, { role: "user", content: textContent }],
+        history: [
+          ...current.history,
+          {
+            role: "user",
+            content:
+              textContent +
+              (allowedArtefacts
+                ? allowedArtefactsPrompt(allowedArtefacts, props.artefacts)
+                : ""),
+          },
+        ],
       }),
     );
 
@@ -305,6 +352,7 @@ export const createAgent = (props: {
   return {
     name: props.name,
     description: props.description,
+    artefacts: props.artefacts,
     createConversation,
     sendMessage,
   };

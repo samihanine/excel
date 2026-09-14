@@ -45,6 +45,8 @@ export const conversationSchema = z.object({
   title: z.string(),
   agentName: z.string(),
   datasetId: z.string(),
+  /** Fichiers de contexte injectés au démarrage (figés ensuite). */
+  contextFileIds: z.array(z.string()).default([]),
   createdAt: z.string(),
   updatedAt: z.string(),
   messages: z.array(chatMessageSchema),
