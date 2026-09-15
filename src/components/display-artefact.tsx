@@ -20,12 +20,12 @@ import {
 } from "@/artefacts/dashboard-artefact";
 import type { Dashboard } from "@/artefacts/dashboard-artefact";
 import { excelArtefact, excelSchema } from "@/artefacts/excel-artefact";
-import { emailArtefact, emailSchema } from "@/artefacts/email-artefact";
 import {
   documentArtefact,
   documentSchema,
 } from "@/artefacts/document-artefact";
-import { TextBlock } from "@/components/text-artefact-view";
+import type { Document } from "@/artefacts/document-artefact";
+import { DocumentView } from "@/components/text-artefact-view";
 import { removeArtefact, updateArtefactData } from "@/lib/artefacts";
 import type { ArtefactRecord } from "@/schemas/conversation-schema";
 
@@ -59,25 +59,15 @@ const renderers: Partial<
   [excelArtefact.name]: ({ record }) => (
     <ExcelView excel={excelSchema.parse(record.data)} name={record.name} />
   ),
-  [emailArtefact.name]: ({ record }) => {
-    const email = emailSchema.parse(record.data);
-    return (
-      <div className="flex flex-col gap-5">
-        {email.to ? <TextBlock label="Destinataire" text={email.to} /> : null}
-        <TextBlock label="Objet" text={email.subject} />
-        <TextBlock label="Message" text={email.body} />
-      </div>
-    );
-  },
-  [documentArtefact.name]: ({ record }) => {
-    const document = documentSchema.parse(record.data);
-    return (
-      <TextBlock
-        label={document.title ?? record.name}
-        text={document.content}
-      />
-    );
-  },
+  [documentArtefact.name]: ({ record, conversationId }) => (
+    <DocumentView
+      key={record.updatedAt}
+      document={documentSchema.parse(record.data)}
+      onSave={(next) =>
+        updateArtefactData<Document>(conversationId, record.id, () => next)
+      }
+    />
+  ),
 };
 
 function ArtefactContent(props: RenderProps) {

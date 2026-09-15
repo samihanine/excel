@@ -11,12 +11,12 @@ export type Document = z.infer<typeof documentSchema>;
 export const documentArtefact = createArtefact({
   name: "document",
   description:
-    "Texte libre affiché à l'utilisateur avec un bouton copier (correction, traduction, rédaction, synthèse).",
+    "Texte libre éditable (correction, traduction, rédaction, mail, synthèse).",
   prompt: [
-    "- À utiliser dès que l'utilisateur demande de corriger, reformuler, traduire, résumer ou rédiger un texte : le résultat va dans `content`, pas dans answerUser.",
-    "- `content` en texte brut, structure du texte d'origine conservée (paragraphes, listes). Pas de commentaire dedans : les explications éventuelles vont dans answerUser.",
+    "- À utiliser dès que l'utilisateur demande de corriger, reformuler, traduire, résumer, rédiger un texte ou préparer un mail : le résultat va dans `content`, pas dans answerUser.",
+    "- `content` en texte brut, structure du texte d'origine conservée (paragraphes, listes). Pour un mail : objet en première ligne, puis le corps. Pas de commentaire dedans : les explications éventuelles vont dans answerUser.",
     "- Traduction : ne traduis que le texte fourni, sans ajouter d'introduction.",
-    "- Une retouche se fait avec `path` (`content`).",
+    "- L'utilisateur peut modifier le document dans l'onglet : une retouche de ta part se fait avec `path` (`content` ou `title`).",
   ].join("\n"),
   schema: documentSchema,
   empty: { content: "Document à rédiger." },

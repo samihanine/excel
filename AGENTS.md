@@ -1,6 +1,6 @@
 # Agent d'analyse Power BI
 
-Application front (TanStack Start) : un chat avec un agent LLM qui interroge un modèle sémantique Power BI en DAX et produit des artefacts (dashboards, feuilles Excel, mails, documents). Tout est stocké dans le localStorage du navigateur.
+Application front (TanStack Start) : un chat avec un agent LLM qui interroge un modèle sémantique Power BI en DAX et produit des artefacts (dashboards, feuilles Excel, documents). Tout est stocké dans le localStorage du navigateur.
 
 # Stack
 
@@ -42,7 +42,7 @@ Application front (TanStack Start) : un chat avec un agent LLM qui interroge un 
 
 **Outil** (`createTool` dans `src/lib/create-tool.ts`) : `name`, `description`, `prompt` (mode d'emploi détaillé pour le LLM), `parameters` et `response` (Zod), `function(params, context)`. Le contexte donne `conversationId`, `dataset`, `artefacts`. Les outils d'artefact (`listArtefacts`, `readArtefact`, `upsertArtefact`) et `answerUser` sont ajoutés automatiquement par `createAgent`.
 
-**Artefact** (`createArtefact` dans `src/lib/create-artefact.ts`) : `name` (= `type` stocké), `description`, `prompt` (quand et comment l'utiliser), `schema` Zod du contenu, `empty` (contenu vide valide pour l'onglet `+`). L'agent le crée/modifie via `upsertArtefact` (remplacement complet ou `path` pointé). L'UI le rend via la table `renderers` de `display-artefact.tsx`. Les données d'un dashboard sont dynamiques (DAX rejoué côté client) ; celles d'un Excel/email/document sont dans le JSON de l'artefact.
+**Artefact** (`createArtefact` dans `src/lib/create-artefact.ts`) : `name` (= `type` stocké), `description`, `prompt` (quand et comment l'utiliser), `schema` Zod du contenu, `empty` (contenu vide valide pour l'onglet `+`). L'agent le crée/modifie via `upsertArtefact` (remplacement complet ou `path` pointé). L'UI le rend via la table `renderers` de `display-artefact.tsx`. Les données d'un dashboard sont dynamiques (DAX rejoué côté client) ; celles d'un Excel/document sont dans le JSON de l'artefact.
 
 **Principe** : l'agent principal reste généraliste ; tout le savoir-faire (règles DAX, composition d'un rapport, structure d'un Excel…) vit dans le `prompt` de l'outil ou de l'artefact concerné. Pour ajouter une capacité : créer un fichier dans `src/tools` ou `src/artefacts`, l'enregistrer dans `src/agents/main-agent.ts`, ajouter un renderer si c'est un artefact.
 
@@ -59,7 +59,7 @@ Application front (TanStack Start) : un chat avec un agent LLM qui interroge un 
 ## `src/agents`
 
 - `index.ts` : registre des agents, `defaultAgent`, `getAgent(name)`.
-- `main-agent.ts` : agent « Analyste » — méthode de travail générale, outils `runDax` + `calculate`, artefacts dashboard/excel/email/document.
+- `main-agent.ts` : agent « Analyste » — méthode de travail générale, outils `runDax` + `calculate`, artefacts dashboard/excel/document.
 
 ## `src/tools`
 
@@ -73,8 +73,7 @@ Application front (TanStack Start) : un chat avec un agent LLM qui interroge un 
 
 - `dashboard-artefact.ts` : `{ title, description, visuals[] }` ; prompt = quand faire un rapport, quel type de visuel, combien.
 - `excel-artefact.ts` : colonnes typées (`formula` mathjs entre colonnes), `rows` stockées, `styles` (règles de fond : gold/muted/success/warning/danger).
-- `email-artefact.ts` : `{ to?, subject, body }`.
-- `document-artefact.ts` : `{ title?, content }` — correction, traduction, rédaction.
+- `document-artefact.ts` : `{ title?, content }` — correction, traduction, rédaction, mail.
 
 ## `src/schemas`
 
@@ -119,5 +118,5 @@ Application front (TanStack Start) : un chat avec un agent LLM qui interroge un 
 - `select-dataset.tsx`, `dataset-form.tsx` (édition + rafraîchir la structure), `context-files-sheet.tsx` (CRUD des fichiers de contexte), `multi-select.tsx` (menu à cases), `token-field.tsx`, `page-header.tsx`.
 - `display-artefact.tsx` : onglets badges (sélection remontée dans `useChat` → artefact actif transmis à l'agent à chaque message), bouton `+`, suppression de l'onglet actif, export PDF d'un dashboard (`window.print` + CSS `@media print` sur `data-print-area`), table `renderers` par type. `add-artefact-sheet.tsx` : création d'un onglet vide de n'importe quel type (`artefact.empty`), import `.xlsx` pour Excel.
 - `dashboard-view.tsx` : grille de `visual-card.tsx` (chargement DAX, rendu par `kind`, boutons DAX / @ / supprimer). `visual-table.tsx` (table paginée), `visual-matrix.tsx` (matrice pivotée), `chart.tsx` (recharts depuis `chartSpec`), `dax-sheet.tsx` (voir, modifier, relancer, enregistrer la requête).
-- `excel-view.tsx` : TanStack Table (tri, pagination, copie cellule/colonne/tout, export .xlsx). `text-artefact-view.tsx` : `TextBlock` copiable (email, document).
+- `excel-view.tsx` : TanStack Table (tri, pagination, copie cellule/colonne/tout, export .xlsx). `text-artefact-view.tsx` : document éditable (titre, contenu, copie, enregistrement).
 - `ui/` : primitives shadcn générées — ne pas modifier à la main.
