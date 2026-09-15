@@ -28,6 +28,9 @@ export function useChat() {
   const contextFiles = useCollection(store.contextFiles);
   const [status, setStatus] = React.useState<string | null>(null);
   const [mentions, setMentions] = React.useState<VisualMention[]>([]);
+  const [activeArtefactId, setActiveArtefactId] = React.useState<string | null>(
+    null,
+  );
   const [allowedArtefacts, setAllowedArtefacts] = React.useState(() =>
     defaultAgent.artefacts.map((artefact) => artefact.name),
   );
@@ -71,6 +74,7 @@ export function useChat() {
         textContent: text + mentionsPrompt(cited),
         displayContent: prefix ? `${prefix} ${text}` : text,
         allowedArtefacts,
+        activeArtefactId,
         onStatus: setStatus,
       });
     },
@@ -88,9 +92,11 @@ export function useChat() {
     contextFiles,
     contextFileIds,
     selectContextFiles: setDraftContextFileIds,
-    artefactOptions: agent.artefacts.map((artefact) => artefact.name),
+    artefactTypes: agent.artefacts,
     allowedArtefacts,
     setAllowedArtefacts,
+    activeArtefactId,
+    setActiveArtefactId,
     openConversation: (id: string | null) => {
       mutation.reset();
       setMentions([]);

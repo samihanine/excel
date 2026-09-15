@@ -74,9 +74,15 @@ export const excelArtefact = createArtefact({
   prompt: [
     "- Les données vivent dans `rows` : c'est toi qui ajoutes/modifies les lignes (issues de runDax, de l'utilisateur ou d'un calcul). Rien n'est recalculé depuis le modèle.",
     "- `columns[].key` = clé dans chaque ligne (camelCase). `type` : text, number, currency, percent (0.12 = 12 %), date (ISO), boolean, select (avec `options`).",
-    "- `formula` : expression mathjs sur les clés de la ligne (`prixUnitaire * quantite`, `ca2014 / ca2013 - 1`). La valeur est calculée à l'affichage, ne la mets pas dans `rows`.",
+    "- `formula` : expression mathjs sur les clés de la ligne (`prixUnitaire * quantite`, `ca2014 / ca2013 - 1`). Toute colonne dérivée d'autres colonnes de la même ligne DOIT être une `formula` (pas de valeurs calculées à la main dans `rows`). Une constante (ex. total général) peut être injectée dans la formule : `ca / 5925374`.",
+    "- Ligne de total : ajoute une ligne dont la clé texte vaut « Total » et les montants calculés via `calculate` ; les colonnes `formula` s'appliquent aussi à cette ligne.",
     "- `styles` : colore le fond d'une cellule si la règle est vraie (`{column:'marge', operator:'lt', value:0, background:'danger'}`). Fonds possibles : gold, muted, success, warning, danger.",
     "- Retouche ciblée : `path` = `rows.3.statut` ou `rows.12` (nouvelle ligne à l'index suivant), sinon renvoie tout.",
   ].join("\n"),
   schema: excelSchema,
+  empty: {
+    columns: [{ key: "colonne1", label: "Colonne 1", type: "text" }],
+    rows: [],
+    styles: [],
+  },
 });

@@ -11,7 +11,8 @@ export const answerUserTool = createTool({
     answer: z.string(),
   }),
   prompt: [
-    "Réponse courte et concrète, en français, en texte brut (pas de markdown : ni `**`, ni `#`, ni backticks ; les tirets de liste sont acceptés).",
+    "Réponse courte et concrète, dans la langue de l'utilisateur.",
+    "Mise en forme autorisée, uniquement : retours à la ligne (`\\n`) pour séparer les idées, `**gras**` pour les chiffres ou conclusions clés, `*italique*` pour une nuance, `- ` en début de ligne pour une liste. Pas de titres `#`, pas de tableaux, pas de backticks.",
     "Si tu as créé ou modifié un artefact, dis-le en une phrase : il est déjà affiché à l'utilisateur, ne le recopie pas.",
     "Si tu es bloqué ou s'il manque une info (période, magasin, définition d'un indicateur) : pose une question courte, n'invente pas.",
   ].join("\n"),

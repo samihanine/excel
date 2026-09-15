@@ -7,15 +7,43 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Spinner } from "@/components/ui/spinner";
+import { RichText } from "@/components/rich-text";
 import type { AgentStep, ChatMessage } from "@/schemas/conversation-schema";
 
-function Steps({ steps }: { steps: AgentStep[] }) {
-  if (steps.length === 0) return null;
+function formatDuration(durationMs: number) {
+  const seconds = Math.max(0, Math.round(durationMs / 1000));
+  return `${seconds} s`;
+}
+
+function Meta({
+  steps,
+  durationMs,
+}: {
+  steps: AgentStep[];
+  durationMs?: number;
+}) {
+  if (steps.length === 0 && durationMs === undefined) return null;
+  const label = (
+    <span className="flex items-center gap-1.5">
+      {durationMs !== undefined ? (
+        <span>{formatDuration(durationMs)}</span>
+      ) : null}
+      {durationMs !== undefined && steps.length > 0 ? <span>·</span> : null}
+      {steps.length > 0 ? (
+        <>
+          <ChevronRightIcon className="size-3 transition-transform group-data-panel-open:rotate-90" />
+          {steps.length} étape{steps.length > 1 ? "s" : ""}
+        </>
+      ) : null}
+    </span>
+  );
+  if (steps.length === 0) {
+    return <p className="text-xs text-muted-foreground">{label}</p>;
+  }
   return (
     <Collapsible className="max-w-[80%] text-xs text-muted-foreground">
-      <CollapsibleTrigger className="group flex items-center gap-1 hover:text-foreground">
-        <ChevronRightIcon className="size-3 transition-transform group-data-panel-open:rotate-90" />
-        {steps.length} étape{steps.length > 1 ? "s" : ""}
+      <CollapsibleTrigger className="group flex items-center hover:text-foreground">
+        {label}
       </CollapsibleTrigger>
       <CollapsibleContent className="mt-2 flex flex-col gap-2">
         {steps.map((step, index) => (
@@ -76,11 +104,11 @@ export const ChatMessages = ({
             data-align={message.role === "user" ? "end" : "start"}
           >
             <BubbleContent className="whitespace-pre-wrap">
-              {message.content}
+              <RichText text={message.content} />
             </BubbleContent>
           </Bubble>
           {message.role === "assistant" ? (
-            <Steps steps={message.steps} />
+            <Meta steps={message.steps} durationMs={message.durationMs} />
           ) : null}
         </div>
       ))}

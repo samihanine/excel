@@ -6,6 +6,8 @@ export type Artefact<TSchema extends z.ZodType = z.ZodType> = {
   description: string;
   prompt: string;
   schema: TSchema;
+  /** Contenu vide valide, utilisé quand l'utilisateur crée l'onglet lui-même. */
+  empty: z.infer<TSchema>;
 };
 
 export const createArtefact = <TSchema extends z.ZodType>(

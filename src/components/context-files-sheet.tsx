@@ -18,17 +18,22 @@ import { useCollection } from "@/hooks/use-store";
 import type { ContextFile } from "@/schemas/context-file-schema";
 
 function ContextFileForm({ file }: { file: ContextFile }) {
-  const save = (patch: Partial<ContextFile>) =>
-    store.contextFiles.set({ ...file, ...patch });
+  const [draft, setDraft] = React.useState(file);
+  const dirty =
+    draft.title !== file.title ||
+    draft.content !== file.content ||
+    draft.selectedByDefault !== file.selectedByDefault;
 
   return (
     <li className="flex flex-col gap-2 rounded-2xl border p-3">
       <div className="flex items-center gap-2">
         <Input
           aria-label="Titre du fichier"
-          value={file.title}
+          value={draft.title}
           placeholder="Titre"
-          onChange={(event) => save({ title: event.target.value })}
+          onChange={(event) =>
+            setDraft((current) => ({ ...current, title: event.target.value }))
+          }
         />
         <Button
           variant="ghost"
@@ -41,18 +46,42 @@ function ContextFileForm({ file }: { file: ContextFile }) {
       </div>
       <Textarea
         aria-label="Contenu du fichier"
-        value={file.content}
+        value={draft.content}
         placeholder="Contenu texte injecté en début de conversation…"
-        className="min-h-28 text-xs"
-        onChange={(event) => save({ content: event.target.value })}
+        className="max-h-64 min-h-28 overflow-y-auto text-xs"
+        onChange={(event) =>
+          setDraft((current) => ({ ...current, content: event.target.value }))
+        }
       />
       <Label className="flex items-center gap-2 text-xs">
         <Checkbox
-          checked={file.selectedByDefault}
-          onCheckedChange={(checked) => save({ selectedByDefault: checked })}
+          checked={draft.selectedByDefault}
+          onCheckedChange={(checked) =>
+            setDraft((current) => ({
+              ...current,
+              selectedByDefault: checked === true,
+            }))
+          }
         />
         Sélectionné par défaut
       </Label>
+      <Button
+        size="sm"
+        className="self-start"
+        disabled={!dirty}
+        onClick={() => {
+          const next = {
+            ...file,
+            title: draft.title.trim() || "Sans titre",
+            content: draft.content,
+            selectedByDefault: draft.selectedByDefault,
+          };
+          store.contextFiles.set(next);
+          setDraft(next);
+        }}
+      >
+        Enregistrer
+      </Button>
     </li>
   );
 }

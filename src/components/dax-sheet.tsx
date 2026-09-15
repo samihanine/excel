@@ -90,7 +90,7 @@ export const DaxSheet = ({
             aria-label="Requête DAX"
             value={value}
             onChange={(event) => setValue(event.target.value)}
-            className="min-h-40 font-mono text-xs"
+            className="max-h-80 min-h-40 overflow-y-auto font-mono text-xs"
             spellCheck={false}
           />
           <div className="flex items-center gap-2">

@@ -12,7 +12,8 @@ export const listArtefactsTool = createTool({
       z.object({ id: z.string(), type: z.string(), name: z.string() }),
     ),
   }),
-  prompt: "Vérifie ce qui existe déjà avant de créer un nouvel artefact.",
+  prompt:
+    "Uniquement quand l'utilisateur fait référence à un artefact existant autre que l'artefact actif indiqué dans son message. Inutile avant de créer un nouvel artefact.",
   function: async (_props, { conversationId }) => ({
     artefacts: (store.conversations.get(conversationId)?.artefacts ?? []).map(
       ({ id, type, name }) => ({ id, type, name }),

@@ -99,15 +99,36 @@ export const tableVisualSchema = visualBaseSchema.extend({
   pageSize: z.number().int().min(1).max(100).default(10),
 });
 
-/** Texte libre avec placeholders `{{alias}}` ou `{{alias|currency}}` (1re ligne du DAX). */
+/** Texte libre avec placeholders `{{alias}}` / `{{alias|currency}}` (1re ligne du DAX) et `**gras**` / `*italique*`. */
 export const textVisualSchema = visualBaseSchema.extend({
   kind: z.literal("text"),
   template: z.string().min(1),
 });
 
+const matrixFieldSchema = z.object({
+  dataKey: z.string().min(1),
+  label: z.string().optional(),
+});
+
+/** Matrice : DAX en format long (une ligne = une combinaison ligne × colonne), pivoté à l'affichage. */
+export const matrixVisualSchema = visualBaseSchema.extend({
+  kind: z.literal("matrix"),
+  rows: z.array(matrixFieldSchema).min(1),
+  columns: matrixFieldSchema,
+  values: z
+    .array(
+      matrixFieldSchema.extend({
+        format: valueFormatSchema.default("number"),
+      }),
+    )
+    .min(1),
+  pageSize: z.number().int().min(1).max(100).default(12),
+});
+
 export const visualSpecSchema = z.union([
   tableVisualSchema,
   textVisualSchema,
+  matrixVisualSchema,
   chartVisualSchema,
 ]);
 
@@ -115,3 +136,4 @@ export type VisualSpec = z.infer<typeof visualSpecSchema>;
 export type ChartVisual = z.infer<typeof chartVisualSchema>;
 export type TableVisual = z.infer<typeof tableVisualSchema>;
 export type TextVisual = z.infer<typeof textVisualSchema>;
+export type MatrixVisual = z.infer<typeof matrixVisualSchema>;

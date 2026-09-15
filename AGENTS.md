@@ -42,7 +42,7 @@ Application front (TanStack Start) : un chat avec un agent LLM qui interroge un 
 
 **Outil** (`createTool` dans `src/lib/create-tool.ts`) : `name`, `description`, `prompt` (mode d'emploi détaillé pour le LLM), `parameters` et `response` (Zod), `function(params, context)`. Le contexte donne `conversationId`, `dataset`, `artefacts`. Les outils d'artefact (`listArtefacts`, `readArtefact`, `upsertArtefact`) et `answerUser` sont ajoutés automatiquement par `createAgent`.
 
-**Artefact** (`createArtefact` dans `src/lib/create-artefact.ts`) : `name` (= `type` stocké), `description`, `prompt` (quand et comment l'utiliser), `schema` Zod du contenu. L'agent le crée/modifie via `upsertArtefact` (remplacement complet ou `path` pointé). L'UI le rend via la table `renderers` de `display-artefact.tsx`. Les données d'un dashboard sont dynamiques (DAX rejoué côté client) ; celles d'un Excel/email/document sont dans le JSON de l'artefact.
+**Artefact** (`createArtefact` dans `src/lib/create-artefact.ts`) : `name` (= `type` stocké), `description`, `prompt` (quand et comment l'utiliser), `schema` Zod du contenu, `empty` (contenu vide valide pour l'onglet `+`). L'agent le crée/modifie via `upsertArtefact` (remplacement complet ou `path` pointé). L'UI le rend via la table `renderers` de `display-artefact.tsx`. Les données d'un dashboard sont dynamiques (DAX rejoué côté client) ; celles d'un Excel/email/document sont dans le JSON de l'artefact.
 
 **Principe** : l'agent principal reste généraliste ; tout le savoir-faire (règles DAX, composition d'un rapport, structure d'un Excel…) vit dans le `prompt` de l'outil ou de l'artefact concerné. Pour ajouter une capacité : créer un fichier dans `src/tools` ou `src/artefacts`, l'enregistrer dans `src/agents/main-agent.ts`, ajouter un renderer si c'est un artefact.
 
@@ -78,10 +78,10 @@ Application front (TanStack Start) : un chat avec un agent LLM qui interroge un 
 
 ## `src/schemas`
 
-- `conversation-schema.ts` : `llmMessage`, `agentStep`, `chatMessage`, `artefactRecord`, `conversation` (agent, dataset, `contextFileIds`, messages, historique LLM, artefacts).
+- `conversation-schema.ts` : `llmMessage`, `agentStep`, `chatMessage`, `artefactRecord`, `conversation` (agent, dataset, `contextFileIds`, `pinned`, messages, historique LLM, artefacts).
 - `dataset-schema.ts` : dataset lié à un modèle sémantique (titre, contexte métier, structure générée, exemples).
 - `context-file-schema.ts` : fichier texte de contexte (titre, contenu, sélectionné par défaut).
-- `visual-spec-schema.ts` : `chartSpec` (recharts, sans couleur), visuels `chart` / `table` / `text`, `valueFormat`.
+- `visual-spec-schema.ts` : `chartSpec` (recharts, sans couleur), visuels `chart` / `table` / `matrix` / `text`, `valueFormat`.
 
 ## `src/lib`
 
@@ -115,9 +115,9 @@ Application front (TanStack Start) : un chat avec un agent LLM qui interroge un 
 
 - `chat.tsx` : en-tête (dataset, fichiers de contexte + sheet, tokens, export, nouvelle conversation, historique), messages, saisie.
 - `chat-input.tsx` : textarea, chips des visuels cités, multi-select des artefacts autorisés, envoi.
-- `chat-messages.tsx` : bulles + étapes d'outils dépliables. `create-conversation-button.tsx`, `conversation-history-sheet.tsx` (liste, export N dernières, suppression).
+- `chat-messages.tsx` : bulles + étapes d'outils dépliables et durée de génération. `create-conversation-button.tsx`, `conversation-history-sheet.tsx` (liste épinglées d'abord, épingler, export JSON, export N dernières, suppression). Les réponses de l'agent et les visuels `text` acceptent `**gras**`, `*italique*` et retours à la ligne (`rich-text.tsx`).
 - `select-dataset.tsx`, `dataset-form.tsx` (édition + rafraîchir la structure), `context-files-sheet.tsx` (CRUD des fichiers de contexte), `multi-select.tsx` (menu à cases), `token-field.tsx`, `page-header.tsx`.
-- `display-artefact.tsx` : onglets badges, bouton `+`, table `renderers` par type. `add-artefact-sheet.tsx` : création d'un onglet vide (dashboard ou Excel, import `.xlsx`).
-- `dashboard-view.tsx` : grille de `visual-card.tsx` (chargement DAX, rendu par `kind`, boutons DAX / @ / supprimer). `visual-table.tsx` (table paginée), `chart.tsx` (recharts depuis `chartSpec`), `dax-sheet.tsx` (voir, modifier, relancer, enregistrer la requête).
+- `display-artefact.tsx` : onglets badges (sélection remontée dans `useChat` → artefact actif transmis à l'agent à chaque message), bouton `+`, suppression de l'onglet actif, export PDF d'un dashboard (`window.print` + CSS `@media print` sur `data-print-area`), table `renderers` par type. `add-artefact-sheet.tsx` : création d'un onglet vide de n'importe quel type (`artefact.empty`), import `.xlsx` pour Excel.
+- `dashboard-view.tsx` : grille de `visual-card.tsx` (chargement DAX, rendu par `kind`, boutons DAX / @ / supprimer). `visual-table.tsx` (table paginée), `visual-matrix.tsx` (matrice pivotée), `chart.tsx` (recharts depuis `chartSpec`), `dax-sheet.tsx` (voir, modifier, relancer, enregistrer la requête).
 - `excel-view.tsx` : TanStack Table (tri, pagination, copie cellule/colonne/tout, export .xlsx). `text-artefact-view.tsx` : `TextBlock` copiable (email, document).
 - `ui/` : primitives shadcn générées — ne pas modifier à la main.

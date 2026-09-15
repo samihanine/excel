@@ -19,4 +19,5 @@ export const documentArtefact = createArtefact({
     "- Une retouche se fait avec `path` (`content`).",
   ].join("\n"),
   schema: documentSchema,
+  empty: { content: "Document à rédiger." },
 });

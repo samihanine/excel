@@ -224,3 +224,38 @@
       oklch(1 0 0 / 0.03) 4px
     );
 }
+
+/* Export PDF (window.print) : seul l'artefact actif est imprimé, sans les boutons d'action. */
+@media print {
+  body {
+    background: white;
+  }
+  body * {
+    visibility: hidden;
+  }
+  [data-print-area],
+  [data-print-area] * {
+    visibility: visible;
+  }
+  html,
+  body,
+  main,
+  [data-slot="resizable-panel-group"],
+  [data-slot="resizable-panel"],
+  [data-slot="tabs"] {
+    height: auto !important;
+    overflow: visible !important;
+  }
+  [data-print-area] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    overflow: visible;
+    padding: 16px;
+  }
+  [data-print-area] [data-slot="card-footer"],
+  [data-print-area] button {
+    display: none;
+  }
+}

@@ -1,3 +1,4 @@
+import * as React from "react";
 import { useMutation } from "@tanstack/react-query";
 import { RefreshCwIcon, Trash2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,13 +17,20 @@ export const DatasetForm = ({
   dataset: Dataset;
   onDelete: () => void;
 }) => {
-  const save = (patch: Partial<Dataset>) =>
-    store.datasets.set({ ...dataset, ...patch });
+  const [draft, setDraft] = React.useState(dataset);
+  const dirty =
+    draft.title !== dataset.title ||
+    draft.context !== dataset.context ||
+    draft.structure !== dataset.structure ||
+    draft.examples.join("\n") !== dataset.examples.join("\n");
+
+  const patch = (partial: Partial<Dataset>) =>
+    setDraft((current) => ({ ...current, ...partial }));
 
   const refreshStructure = useMutation({
     mutationKey: ["dataset", "structure", dataset.id],
     mutationFn: () => fetchSemanticModelStructure(dataset.semanticModelName),
-    onSuccess: (structure) => save({ structure }),
+    onSuccess: (structure) => patch({ structure }),
   });
 
   return (
@@ -32,8 +40,8 @@ export const DatasetForm = ({
           <Label htmlFor="dataset-title">Titre</Label>
           <Input
             id="dataset-title"
-            value={dataset.title}
-            onChange={(event) => save({ title: event.target.value })}
+            value={draft.title}
+            onChange={(event) => patch({ title: event.target.value })}
           />
         </div>
         <div className="flex flex-col gap-1.5">
@@ -68,8 +76,8 @@ export const DatasetForm = ({
           id="dataset-structure"
           readOnly
           rows={10}
-          className="font-mono text-xs"
-          value={dataset.structure}
+          className="max-h-96 overflow-y-auto font-mono text-xs"
+          value={draft.structure}
           placeholder="Aucune structure récupérée."
         />
         {refreshStructure.isError ? (
@@ -85,8 +93,8 @@ export const DatasetForm = ({
           id="dataset-context"
           rows={6}
           placeholder="Règles métier, définitions, périodes disponibles…"
-          value={dataset.context}
-          onChange={(event) => save({ context: event.target.value })}
+          value={draft.context}
+          onChange={(event) => patch({ context: event.target.value })}
         />
       </div>
 
@@ -97,27 +105,38 @@ export const DatasetForm = ({
         <Textarea
           id="dataset-examples"
           rows={4}
-          value={dataset.examples.join("\n")}
+          value={draft.examples.join("\n")}
           onChange={(event) =>
-            save({ examples: event.target.value.split("\n") })
-          }
-          onBlur={() =>
-            save({
-              examples: dataset.examples.map((e) => e.trim()).filter(Boolean),
-            })
+            patch({ examples: event.target.value.split("\n") })
           }
         />
       </div>
 
-      <Button
-        variant="destructive"
-        size="sm"
-        className="self-start"
-        onClick={onDelete}
-      >
-        <Trash2Icon data-icon="inline-start" />
-        Supprimer ce dataset
-      </Button>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          size="sm"
+          disabled={!dirty}
+          onClick={() => {
+            const next = {
+              ...dataset,
+              title: draft.title.trim() || dataset.semanticModelName,
+              context: draft.context,
+              structure: draft.structure,
+              examples: draft.examples
+                .map((line) => line.trim())
+                .filter(Boolean),
+            };
+            store.datasets.set(next);
+            setDraft(next);
+          }}
+        >
+          Enregistrer
+        </Button>
+        <Button variant="destructive" size="sm" onClick={onDelete}>
+          <Trash2Icon data-icon="inline-start" />
+          Supprimer ce dataset
+        </Button>
+      </div>
     </div>
   );
 };

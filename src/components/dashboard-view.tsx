@@ -34,7 +34,7 @@ export const DashboardView = ({
           Ce dashboard est vide : demande à l'agent d'y ajouter des visuels.
         </p>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="flex flex-col gap-4">
           {dashboard.visuals.map((visual) => (
             <VisualCard
               key={visual.id}

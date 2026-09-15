@@ -23,6 +23,8 @@ export const chatMessageSchema = z.object({
   role: z.enum(["user", "assistant"]),
   content: z.string(),
   createdAt: z.string(),
+  /** Durée de génération de la réponse (messages assistant). */
+  durationMs: z.number().optional(),
   steps: z.array(agentStepSchema).default([]),
 });
 
@@ -47,6 +49,7 @@ export const conversationSchema = z.object({
   datasetId: z.string(),
   /** Fichiers de contexte injectés au démarrage (figés ensuite). */
   contextFileIds: z.array(z.string()).default([]),
+  pinned: z.boolean().default(false),
   createdAt: z.string(),
   updatedAt: z.string(),
   messages: z.array(chatMessageSchema),

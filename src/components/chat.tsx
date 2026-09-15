@@ -1,12 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import {
-  DatabaseIcon,
-  DownloadIcon,
-  FileTextIcon,
-  KeyRoundIcon,
-} from "lucide-react";
+import { DatabaseIcon, FileTextIcon, KeyRoundIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { conversationDump, downloadJson, slugify } from "@/lib/download";
 import { ChatInput } from "@/components/chat-input";
 import { ChatMessages } from "@/components/chat-messages";
 import { ContextFilesSheet } from "@/components/context-files-sheet";
@@ -19,7 +13,7 @@ import type { useChat } from "@/hooks/use-chat";
 export const Chat = ({ chat }: { chat: ReturnType<typeof useChat> }) => {
   return (
     <div className="flex h-full flex-col">
-      <header className="flex flex-wrap items-center gap-1 border-b p-2">
+      <header className="flex h-11 items-center gap-1 overflow-x-auto border-b px-2">
         <SelectDataset
           datasets={chat.datasets}
           value={chat.datasetId}
@@ -56,21 +50,6 @@ export const Chat = ({ chat }: { chat: ReturnType<typeof useChat> }) => {
           <KeyRoundIcon />
         </Button>
         <span className="flex-1" />
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          aria-label="Télécharger la conversation"
-          disabled={!chat.conversation}
-          onClick={() => {
-            if (!chat.conversation) return;
-            downloadJson(
-              `conversation-${slugify(chat.conversation.title)}`,
-              conversationDump(chat.conversation),
-            );
-          }}
-        >
-          <DownloadIcon />
-        </Button>
         <CreateConversationButton
           onCreate={() => chat.openConversation(null)}
           disabled={chat.isPending || !chat.conversation}
@@ -91,7 +70,7 @@ export const Chat = ({ chat }: { chat: ReturnType<typeof useChat> }) => {
         examples={chat.conversation ? [] : (chat.dataset?.examples ?? [])}
         mentions={chat.mentions}
         onRemoveMention={chat.removeMention}
-        artefactOptions={chat.artefactOptions}
+        artefactOptions={chat.artefactTypes.map((artefact) => artefact.name)}
         allowedArtefacts={chat.allowedArtefacts}
         onAllowedArtefactsChange={chat.setAllowedArtefacts}
         disabled={chat.isPending || !chat.dataset}

@@ -1,5 +1,11 @@
 import * as React from "react";
-import { DownloadIcon, HistoryIcon, Trash2Icon } from "lucide-react";
+import {
+  DownloadIcon,
+  HistoryIcon,
+  PinIcon,
+  PinOffIcon,
+  Trash2Icon,
+} from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -59,8 +65,11 @@ export const ConversationHistorySheet = ({
   const [open, setOpen] = React.useState(false);
   const conversations = useCollection(store.conversations);
   const datasets = useCollection(store.datasets);
-  const sorted = [...conversations].sort((left, right) =>
-    right.updatedAt.localeCompare(left.updatedAt),
+  // Épinglées d'abord, puis les plus récentes.
+  const sorted = [...conversations].sort(
+    (left, right) =>
+      Number(right.pinned) - Number(left.pinned) ||
+      right.updatedAt.localeCompare(left.updatedAt),
   );
 
   return (
@@ -113,6 +122,27 @@ export const ConversationHistorySheet = ({
                           locale: fr,
                         })}
                       </span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label={
+                        conversation.pinned ? "Désépingler" : "Épingler"
+                      }
+                      className={
+                        conversation.pinned ? "text-gold-foreground" : ""
+                      }
+                      onClick={() =>
+                        store.conversations.update(
+                          conversation.id,
+                          (current) => ({
+                            ...current,
+                            pinned: !current.pinned,
+                          }),
+                        )
+                      }
+                    >
+                      {conversation.pinned ? <PinOffIcon /> : <PinIcon />}
                     </Button>
                     <Button
                       variant="ghost"

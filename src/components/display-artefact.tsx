@@ -1,5 +1,7 @@
 import * as React from "react";
-import { LayoutDashboardIcon } from "lucide-react";
+import { LayoutDashboardIcon, PrinterIcon, Trash2Icon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import type { Artefact } from "@/lib/create-artefact";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Empty,
@@ -24,7 +26,7 @@ import {
   documentSchema,
 } from "@/artefacts/document-artefact";
 import { TextBlock } from "@/components/text-artefact-view";
-import { updateArtefactData } from "@/lib/artefacts";
+import { removeArtefact, updateArtefactData } from "@/lib/artefacts";
 import type { ArtefactRecord } from "@/schemas/conversation-schema";
 
 type RenderProps = {
@@ -101,33 +103,39 @@ function ArtefactContent(props: RenderProps) {
 
 export const DisplayArtefact = ({
   artefacts,
+  types,
   conversationId,
   getConversationId,
   datasetName,
+  selected,
+  onSelect,
   onCite,
 }: {
   artefacts: ArtefactRecord[];
+  types: Artefact[];
   conversationId: string | null;
   getConversationId: (() => string) | null;
   datasetName: string;
+  selected: string | null;
+  onSelect: (id: string) => void;
   onCite: (mention: VisualMention) => void;
 }) => {
   const latest = artefacts.reduce<ArtefactRecord | undefined>(
     (best, item) => (!best || item.updatedAt > best.updatedAt ? item : best),
     undefined,
   );
-  const [selected, setSelected] = React.useState<string | null>(null);
 
   // Sélectionne automatiquement le dernier artefact modifié.
   React.useEffect(() => {
-    if (latest) setSelected(latest.id);
+    if (latest) onSelect(latest.id);
   }, [latest?.id, latest?.updatedAt]);
 
   const addTab = getConversationId ? (
     <AddArtefactSheet
+      types={types}
       getConversationId={getConversationId}
       artefacts={artefacts}
-      onCreated={setSelected}
+      onCreated={onSelect}
     />
   ) : null;
 
@@ -151,14 +159,12 @@ export const DisplayArtefact = ({
     );
   }
 
-  const value = artefacts.some((item) => item.id === selected)
-    ? selected
-    : artefacts[0].id;
+  const active = artefacts.find((item) => item.id === selected) ?? artefacts[0];
 
   return (
     <Tabs
-      value={value}
-      onValueChange={(next) => setSelected(String(next))}
+      value={active.id}
+      onValueChange={(next) => onSelect(String(next))}
       className="h-full gap-0"
     >
       <div className="flex h-11 items-center gap-1 overflow-x-auto border-b px-2">
@@ -174,11 +180,34 @@ export const DisplayArtefact = ({
           ))}
         </TabsList>
         {addTab}
+        <span className="flex-1" />
+        {active.type === dashboardArtefact.name ? (
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            aria-label="Télécharger en PDF"
+            onClick={() => window.print()}
+          >
+            <PrinterIcon />
+          </Button>
+        ) : null}
+        {conversationId ? (
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            aria-label={`Supprimer l'onglet ${active.name}`}
+            className="text-destructive hover:text-destructive"
+            onClick={() => removeArtefact(conversationId, active.id)}
+          >
+            <Trash2Icon />
+          </Button>
+        ) : null}
       </div>
       {artefacts.map((artefact) => (
         <TabsContent
           key={artefact.id}
           value={artefact.id}
+          data-print-area={artefact.id === active.id ? "" : undefined}
           className="flex-1 overflow-y-auto p-4"
         >
           {conversationId ? (

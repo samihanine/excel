@@ -182,6 +182,7 @@ export const createAgent = (props: {
       agentName: props.name,
       datasetId: dataset.id,
       contextFileIds: contextFiles.map((file) => file.id),
+      pinned: false,
       createdAt: now,
       updatedAt: now,
       messages: [],
@@ -207,6 +208,7 @@ export const createAgent = (props: {
     textContent,
     displayContent,
     allowedArtefacts,
+    activeArtefactId,
     onStatus,
   }: {
     conversationId: string;
@@ -215,6 +217,8 @@ export const createAgent = (props: {
     displayContent?: string;
     /** Types d'artefacts autorisés pour ce tour (tous si absent). */
     allowedArtefacts?: string[];
+    /** Onglet actuellement affiché à l'utilisateur. */
+    activeArtefactId?: string | null;
     onStatus?: (status: string) => void;
   }): Promise<Conversation> => {
     const initial = store.conversations.get(conversationId);
@@ -229,6 +233,13 @@ export const createAgent = (props: {
       artefacts: props.artefacts,
     };
     const steps: AgentStep[] = [];
+    const startedAt = Date.now();
+    const active = initial.artefacts.find(
+      (item) => item.id === activeArtefactId,
+    );
+    const activePrompt = active
+      ? `\n\n[Artefact actif (onglet affiché) : « ${active.name} », type ${active.type}, id \`${active.id}\`. Une demande de modification sans autre précision le concerne.]`
+      : "";
 
     const append = (message: LlmMessage) =>
       store.conversations.update(conversationId, (current) => ({
@@ -261,6 +272,7 @@ export const createAgent = (props: {
             role: "user",
             content:
               textContent +
+              activePrompt +
               (allowedArtefacts
                 ? allowedArtefactsPrompt(allowedArtefacts, props.artefacts)
                 : ""),
@@ -323,6 +335,7 @@ export const createAgent = (props: {
               role: "assistant",
               content: parsed.data.answer,
               createdAt: new Date().toISOString(),
+              durationMs: Date.now() - startedAt,
               steps,
             },
           ],

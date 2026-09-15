@@ -12,6 +12,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { buildChart } from "@/components/chart";
 import { DaxSheet } from "@/components/dax-sheet";
+import { RichText } from "@/components/rich-text";
+import { VisualMatrix } from "@/components/visual-matrix";
 import { VisualTable } from "@/components/visual-table";
 import { useDaxQuery } from "@/hooks/use-dax";
 import type { DataRow } from "@/lib/dax";
@@ -31,7 +33,7 @@ function VisualBody({ visual, rows }: { visual: VisualSpec; rows: DataRow[] }) {
   if (visual.kind === "text") {
     return (
       <p className="text-base leading-relaxed whitespace-pre-line">
-        {renderTemplate(visual.template, rows[0] ?? {})}
+        <RichText text={renderTemplate(visual.template, rows[0] ?? {})} />
       </p>
     );
   }
@@ -44,6 +46,9 @@ function VisualBody({ visual, rows }: { visual: VisualSpec; rows: DataRow[] }) {
   }
   if (visual.kind === "table") {
     return <VisualTable visual={visual} rows={rows} />;
+  }
+  if (visual.kind === "matrix") {
+    return <VisualMatrix visual={visual} rows={rows} />;
   }
   return buildChart(visual.chartSpec, rows);
 }
@@ -65,10 +70,9 @@ export const VisualCard = ({
 }) => {
   const [daxOpen, setDaxOpen] = React.useState(false);
   const query = useDaxQuery(datasetName, visual.daxQuery);
-  const wide = visual.kind === "table";
 
   return (
-    <Card className={wide ? "lg:col-span-2" : undefined}>
+    <Card>
       <CardHeader>
         <CardTitle>{visual.title}</CardTitle>
         {visual.description ? (
@@ -80,7 +84,11 @@ export const VisualCard = ({
           <Skeleton
             style={{
               height:
-                visual.kind === "chart" ? visual.chartSpec.options.height : 120,
+                visual.kind === "chart"
+                  ? visual.chartSpec.options.height
+                  : visual.kind === "matrix"
+                    ? 220
+                    : 120,
             }}
           />
         ) : query.isError ? (

@@ -39,6 +39,14 @@ export function updateArtefactData<T>(
   });
 }
 
+export function removeArtefact(conversationId: string, artefactId: string) {
+  store.conversations.update(conversationId, (current) => ({
+    ...current,
+    updatedAt: new Date().toISOString(),
+    artefacts: current.artefacts.filter((item) => item.id !== artefactId),
+  }));
+}
+
 /** Identifiant kebab-case unique parmi les artefacts existants. */
 export function artefactIdFromName(name: string, existing: ArtefactRecord[]) {
   const base =

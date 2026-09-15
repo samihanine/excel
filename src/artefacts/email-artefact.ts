@@ -20,4 +20,5 @@ export const emailArtefact = createArtefact({
     "- Une retouche se fait avec `path` (`subject` ou `body`).",
   ].join("\n"),
   schema: emailSchema,
+  empty: { subject: "Objet à définir", body: "Corps du mail à rédiger." },
 });
