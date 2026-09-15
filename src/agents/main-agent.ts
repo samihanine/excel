@@ -4,15 +4,16 @@ import { mathTool } from "@/tools/math-tool";
 import { dashboardArtefact } from "@/artefacts/dashboard-artefact";
 import { excelArtefact } from "@/artefacts/excel-artefact";
 import { documentArtefact } from "@/artefacts/document-artefact";
+import { powerpointArtefact } from "@/artefacts/powerpoint-artefact";
 
 /**
- * Agent généraliste : le savoir-faire (DAX, rapports, Excel, documents) vit dans
- * le prompt de chaque outil et artefact. Ici, seulement la méthode de travail.
+ * Agent généraliste : le savoir-faire (DAX, rapports, Excel, documents, PowerPoint)
+ * vit dans le prompt de chaque outil et artefact. Ici, seulement la méthode de travail.
  */
 export const mainAgent = createAgent({
   name: "Analyste",
   description:
-    "Un assistant d'analyse qui répond à partir d'un modèle sémantique Power BI et produit des artefacts (dashboards, feuilles Excel, documents).",
+    "Un assistant d'analyse qui répond à partir d'un modèle sémantique Power BI et produit des artefacts (dashboards, feuilles Excel, documents, présentations PowerPoint).",
   prompt: [
     "Méthode :",
     "1. Lis la demande, le message système « Dataset sélectionné » (structure du modèle = source de vérité), les fichiers de contexte, les visuels cités (@) et l'éventuelle liste d'artefacts autorisés en fin de message.",
@@ -27,5 +28,10 @@ export const mainAgent = createAgent({
   ].join("\n"),
   tools: [runDaxTool, mathTool],
   model: "gpt-5.6-luna",
-  artefacts: [dashboardArtefact, excelArtefact, documentArtefact],
+  artefacts: [
+    dashboardArtefact,
+    excelArtefact,
+    documentArtefact,
+    powerpointArtefact,
+  ],
 });

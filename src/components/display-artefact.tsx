@@ -26,6 +26,11 @@ import {
 } from "@/artefacts/document-artefact";
 import type { Document } from "@/artefacts/document-artefact";
 import { DocumentView } from "@/components/text-artefact-view";
+import { PowerpointView } from "@/components/powerpoint-view";
+import {
+  powerpointArtefact,
+  powerpointSchema,
+} from "@/artefacts/powerpoint-artefact";
 import { removeArtefact, updateArtefactData } from "@/lib/artefacts";
 import type { ArtefactRecord } from "@/schemas/conversation-schema";
 
@@ -66,6 +71,12 @@ const renderers: Partial<
       onSave={(next) =>
         updateArtefactData<Document>(conversationId, record.id, () => next)
       }
+    />
+  ),
+  [powerpointArtefact.name]: ({ record }) => (
+    <PowerpointView
+      deck={powerpointSchema.parse(record.data)}
+      name={record.name}
     />
   ),
 };
@@ -140,8 +151,9 @@ export const DisplayArtefact = ({
             </EmptyMedia>
             <EmptyTitle>Aucun artefact</EmptyTitle>
             <EmptyDescription>
-              Les tableaux de bord et feuilles créés par l'agent apparaîtront
-              ici. Tu peux aussi ajouter un onglet avec le bouton +.
+              Les tableaux de bord, feuilles et présentations créés par l'agent
+              apparaîtront ici. Tu peux aussi ajouter un onglet avec le bouton
+              +.
             </EmptyDescription>
           </EmptyHeader>
         </Empty>
