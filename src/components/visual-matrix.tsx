@@ -214,7 +214,7 @@ export const VisualMatrix = ({
               visual.values.map((field) => (
                 <NumericCell
                   key={`${columnId}-${field.dataKey}`}
-                  value={matrix.columnTotals[columnId]?.[field.dataKey]}
+                  value={matrix.columnTotals[columnId][field.dataKey]}
                   format={field.format}
                 />
               )),

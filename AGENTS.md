@@ -53,7 +53,7 @@ Application front (TanStack Start) : un chat avec un agent LLM qui interroge un 
 - `AGENTS.md` : ce document.
 - `package.json` : scripts `dev`, `build`, `build:html` (HTML monofichier), `typecheck`, `lint`, `format`, `pbi:token`, `dump:src`.
 - `vite.config.ts`, `tsconfig.json`, `eslint.config.js`, `components.json` (shadcn), `.env` (`VITE_PUBLIC_PBIX_ACCESS_TOKEN`, `VITE_PUBLIC_AI_API_KEY` : valeurs initiales des tokens).
-- `scripts/get-pbix-access-token.ts` : obtient un jeton Power BI (Azure CLI). `scripts/build-single-html.ts` : inline le build client en un seul `dist/charts.html`. `scripts/dump-src.ts` : concatène `src` dans `.local/src.txt`.
+- `scripts/get-pbix-access-token.ts` : obtient un jeton Power BI (Azure CLI), l'écrit dans `.env` et ouvre `/tokens?pbi-token=…`. `scripts/build-single-html.ts` : inline le build client en un seul `dist/charts.html`. `scripts/dump-src.ts` : concatène `src` dans `.local/src.txt`.
 - `public/` : favicon, manifest, `pattern-toile.svg` (filigrane du fond).
 
 ## `src/agents`
@@ -73,7 +73,7 @@ Application front (TanStack Start) : un chat avec un agent LLM qui interroge un 
 
 - `dashboard-artefact.ts` : `{ title, description, visuals[] }` ; prompt = quand faire un rapport, quel type de visuel, combien.
 - `excel-artefact.ts` : colonnes typées (`formula` mathjs entre colonnes), `rows` stockées, `styles` (règles de fond : gold/muted/success/warning/danger).
-- `document-artefact.ts` : `{ title?, content }` — correction, traduction, rédaction, mail.
+- `document-artefact.ts` : `{ title?, content }` — HTML simple ou markdown (`**gras**`, `*italique*`, `__souligné__`) ; correction, traduction, rédaction, mail.
 
 ## `src/schemas`
 
@@ -118,5 +118,5 @@ Application front (TanStack Start) : un chat avec un agent LLM qui interroge un 
 - `select-dataset.tsx`, `dataset-form.tsx` (édition + rafraîchir la structure), `context-files-sheet.tsx` (CRUD des fichiers de contexte), `multi-select.tsx` (menu à cases), `token-field.tsx`, `page-header.tsx`.
 - `display-artefact.tsx` : onglets badges (sélection remontée dans `useChat` → artefact actif transmis à l'agent à chaque message), bouton `+`, suppression de l'onglet actif, export PDF d'un dashboard (`window.print` + CSS `@media print` sur `data-print-area`), table `renderers` par type. `add-artefact-sheet.tsx` : création d'un onglet vide de n'importe quel type (`artefact.empty`), import `.xlsx` pour Excel.
 - `dashboard-view.tsx` : grille de `visual-card.tsx` (chargement DAX, rendu par `kind`, boutons DAX / @ / supprimer). `visual-table.tsx` (table paginée), `visual-matrix.tsx` (matrice pivotée), `chart.tsx` (recharts depuis `chartSpec`), `dax-sheet.tsx` (voir, modifier, relancer, enregistrer la requête).
-- `excel-view.tsx` : TanStack Table (tri, pagination, copie cellule/colonne/tout, export .xlsx). `text-artefact-view.tsx` : document éditable (titre, contenu, copie, enregistrement).
+- `excel-view.tsx` : TanStack Table (tri, pagination, copie cellule/colonne/tout, export .xlsx). `text-artefact-view.tsx` : document éditable (titre, barre de style type Gmail, copie, enregistrement).
 - `ui/` : primitives shadcn générées — ne pas modifier à la main.

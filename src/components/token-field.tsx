@@ -58,9 +58,8 @@ export const TokenField = ({
         <p className="text-xs text-destructive">
           {getErrorMessage(error).slice(0, 280)}
         </p>
-      ) : hint ? (
-        <p className="text-xs text-muted-foreground">{hint}</p>
       ) : null}
+      {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
     </div>
   );
 };

@@ -62,7 +62,7 @@ const renderers: Partial<
   [documentArtefact.name]: ({ record, conversationId }) => (
     <DocumentView
       key={record.updatedAt}
-      document={documentSchema.parse(record.data)}
+      value={documentSchema.parse(record.data)}
       onSave={(next) =>
         updateArtefactData<Document>(conversationId, record.id, () => next)
       }
